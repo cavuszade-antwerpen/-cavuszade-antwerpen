@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="nl" data-lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Menu — Çavuşzade Antwerpen</title>
+<meta name="theme-color" content="#FFF8E7">
+<meta name="description" content="Menu — Çavuşzade Künefe & Baklava, Antwerpen">
+<meta property="og:title" content="Çavuşzade Antwerpen — Menu">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+
+<script>
+/* ==================================================================
+   AYARLAR — DÜKKAN BİLGİLERİ
+   null bırakılan satırlar sayfada gösterilmez.
+   ================================================================== */
+const SHOP = {
+  logo:      "logo.jpg",          // menu.html ile aynı klasöre logo.jpg koy (yoksa "Ç" harfi çıkar)
+  name:      "Çavuşzade",
+  sub:       "Künefe & Baklava",
+  city:      "Antwerpen",
+  address:   null,                 // "Straatnaam 12, 2060 Antwerpen"
+  phone:     null,                 // "+32 4xx xx xx xx"
+  whatsapp:  null,                 // "324xxxxxxxx"  (başında + olmadan)
+  instagram: null,                 // "https://www.instagram.com/..."
+  tiktok:    null,
+  hours:     null                  // {tr:"...", fr:"...", nl:"...", en:"..."}
+};
+
+/* ==================================================================
+   MENÜ — FİYATLAR VE ÜRÜNLER
+   ------------------------------------------------------------------
+   price   : tek fiyatlı ürün (€). null → fiyat gizli
+   prices  : künefe gibi kişilik boyları olan ürün → {2:14, 3:20, ...}
+   img     : fotoğraf (base64 ya da dosya adı). null → harf rozeti
+   soldOut : true → "Tükendi" olarak görünür (personel paneli bunu kullanacak)
+   id      : değiştirme — personel paneli ürünleri bununla tanıyacak
+   ================================================================== */
+const MENU = [
+  { id:"kunefe", layout:"cards",
+    title:{tr:"Künefeler", fr:"Künefe", nl:"Künefe", en:"Künefe"},
+    note:{tr:"Sıcak servis edilir. Fiyatlar kişi sayısına göre.",
+          fr:"Servi chaud. Prix selon le nombre de personnes.",
+          nl:"Warm geserveerd. Prijs volgens aantal personen.",
+          en:"Served hot. Priced by number of people."},
+    items:[
+      { id:"peynirli-kunefe", name:"Peynirli Künefe", img:null, soldOut:false,
+        badge:{tr:"İmza", fr:"Signature", nl:"Signatuur", en:"Signature"},
+        desc:{tr:"Çıtır kadayıf, uzayan peynir, şerbet", fr:"Kadayıf croustillant, fromage filant, sirop",
+              nl:"Krokante kadayıf, smeltende kaas, siroop", en:"Crispy kadayıf, stretchy cheese, syrup"},
+        prices:{1:null, 2:null, 3:null, 4:null, 6:null} },
+      { id:"kaymakli-hasir-kunefe", name:"Kaymaklı Hasır Künefe", img:null, soldOut:false,
+        desc:{tr:"Hasır kadayıf, kaymak dolgu", fr:"Kadayıf tressé, garni de kaymak (crème épaisse)",
+              nl:"Gevlochten kadayıf met kaymak (dikke room)", en:"Woven kadayıf filled with kaymak (clotted cream)"},
+        prices:{2:null, 3:null, 4:null, 6:null} },
+      { id:"peynirli-hasir-kunefe", name:"Peynirli Hasır Künefe", img:null, soldOut:false,
+        desc:{tr:"Hasır kadayıf, peynir dolgu", fr:"Kadayıf tressé, garni de fromage",
+              nl:"Gevlochten kadayıf met kaas", en:"Woven kadayıf filled with cheese"},
+        prices:{2:null, 3:null, 4:null, 6:null} },
+      { id:"yari-yari-peynirli", name:"Yarı Fıstıklı Yarı Belluriye (Peynirli)", img:null, soldOut:false,
+        desc:{tr:"Yarısı fıstıklı, yarısı belluriye, peynir dolgu", fr:"Moitié pistache, moitié belluriye, au fromage",
+              nl:"Half pistache, half belluriye, met kaas", en:"Half pistachio, half belluriye, with cheese"},
+        prices:{2:null, 3:null, 4:null, 6:null} },
+      { id:"yari-yari-kaymakli", name:"Yarı Fıstıklı Yarı Belluriye (Kaymaklı)", img:null, soldOut:false,
+        desc:{tr:"Yarısı fıstıklı, yarısı belluriye, kaymak dolgu", fr:"Moitié pistache, moitié belluriye, au kaymak",
+              nl:"Half pistache, half belluriye, met kaymak", en:"Half pistachio, half belluriye, with kaymak"},
+        prices:{2:null, 3:null, 4:null, 6:null} },
+      { id:"mozaik-kunefe", name:"Mozaik Künefe", img:null, soldOut:false,
+        desc:{tr:null, fr:"Künefe mosaïque", nl:"Mozaïek-künefe", en:"Mosaic künefe"},
+        prices:{2:null, 3:null, 4:null, 6:null} },
+      { id:"altisi-bir-arada", name:"6'sı 1 Arada", img:null, soldOut:false,
+        badge:{tr:"Paylaşımlık", fr:"À partager", nl:"Om te delen", en:"To share"},
+        desc:{tr:"Altı çeşit tek tepside", fr:"Six variétés sur un plateau",
+              nl:"Zes soorten op één schaal", en:"Six varieties on one tray"},
+        prices:{4:null, 6:null} },
+    ]},
+
+  { id:"baklava", layout:"cards",
+    title:{tr:"Baklavalar", fr:"Baklavas", nl:"Baklava", en:"Baklava"},
+    items:[
+      { id:"fistikli-baklava", name:"Fıstıklı Baklava", img:null, price:null, soldOut:false,
+        desc:{tr:null, fr:"Baklava à la pistache", nl:"Baklava met pistache", en:"Pistachio baklava"} },
+      { id:"cevizli-baklava", name:"Cevizli Baklava", img:null, price:null, soldOut:false,
+        desc:{tr:null, fr:"Baklava aux noix", nl:"Baklava met walnoten", en:"Walnut baklava"} },
+      { id:"sarma", name:"Sarma", img:null, price:null, soldOut:false,
+        desc:{tr:null, fr:"Baklava roulée", nl:"Opgerolde baklava", en:"Rolled baklava"} },
+      { id:"sobiyet", name:"Şöbiyet", img:null, price:null, soldOut:false,
+        desc:{tr:null, fr:"Triangles fourrés à la crème", nl:"Driehoekjes gevuld met room", en:"Cream-filled triangles"} },
+      { id:"bohca", name:"Bohça", img:null, price:null, soldOut:false,
+        desc:{tr:null, fr:"Baklava en petit baluchon", nl:"Baklava in bundelvorm", en:"Bundle-shaped baklava"} },
+      { id:"soguk-baklava", name:"Soğuk Baklava", img:null, price:null, soldOut:false,
+        desc:{tr:null, fr:"Baklava froid au lait", nl:"Koude baklava met melk", en:"Cold milk baklava"} },
+    ]},
+
+  { id:"kadayif", layout:"cards",
+    title:{tr:"Kadayıflar", fr:"Kadayıfs", nl:"Kadayıf", en:"Kadayıf"},
+    items:[
+      { id:"burma-kadayif", name:"Burma Kadayıf", img:null, price:null, soldOut:false,
+        desc:{tr:null, fr:"Kadayıf roulé", nl:"Opgerolde kadayıf", en:"Rolled kadayıf"} },
+      { id:"hasir-kadayif", name:"Hasır Kadayıf", img:null, price:null, soldOut:false,
+        desc:{tr:null, fr:"Kadayıf tressé", nl:"Gevlochten kadayıf", en:"Woven kadayıf"} },
+      { id:"duz-kadayif", name:"Düz Kadayıf", img:null, price:null, soldOut:false,
+        desc:{tr:null, fr:"Kadayıf classique", nl:"Klassieke kadayıf", en:"Classic kadayıf"} },
+      { id:"toz-fistikli-belluriye", name:"Toz Fıstıklı Belluriye", img:null, price:null, soldOut:false,
+        desc:{tr:null, fr:"Belluriye à la pistache moulue", nl:"Belluriye met gemalen pistache", en:"Belluriye with ground pistachio"} },
+      { id:"iri-fistikli-belluriye", name:"İri Fıstıklı Belluriye", img:null, price:null, soldOut:false,
+        desc:{tr:null, fr:"Belluriye aux gros éclats de pistache", nl:"Belluriye met grove pistache", en:"Belluriye with chunky pistachio"} },
+      { id:"kup-kadayif", name:"Küp Kadayıf", img:null, price:null, soldOut:false,
+        desc:{tr:null, fr:"Kadayıf en cube", nl:"Kadayıf-kubus", en:"Kadayıf cube"} },
+    ]},
+
+  { id:"dondurma", layout:"cards",
+    title:{tr:"Dondurmalar", fr:"Glaces", nl:"IJs", en:"Ice cream"},
+    items:[
+      { id:"ezmeli-dondurma", name:"Ezmeli Dondurma", img:null, price:null, soldOut:false, desc:null },
+      { id:"kup-dondurma", name:"Küp Dondurma", img:null, price:null, soldOut:false,
+        desc:{tr:null, fr:"Glace en cube", nl:"IJs in blokvorm", en:"Ice cream cube"} },
+      { id:"sutlu-sade-dondurma", name:"Sütlü Sade Dondurma", img:null, price:null, soldOut:false,
+        desc:{tr:null, fr:"Glace nature au lait", nl:"Melkijs naturel", en:"Plain milk ice cream"} },
+      { id:"fistikli-dondurma", name:"Fıstıklı Dondurma", img:null, price:null, soldOut:false,
+        desc:{tr:null, fr:"Glace à la pistache", nl:"Pistache-ijs", en:"Pistachio ice cream"} },
+      { id:"cikolatali-dondurma", name:"Çikolatalı Dondurma", img:null, price:null, soldOut:false,
+        desc:{tr:null, fr:"Glace au chocolat", nl:"Chocolade-ijs", en:"Chocolate ice cream"} },
+    ]},
+
+  { id:"tatli", layout:"cards",
+    title:{tr:"Sütlaç & San Sebastian", fr:"Riz au lait & cheesecake", nl:"Rijstpudding & cheesecake", en:"Rice pudding & cheesecake"},
+    items:[
+      { id:"sutlac", name:"Sütlaç", img:null, price:null, soldOut:false,
+        desc:{tr:null, fr:"Riz au lait", nl:"Rijstpudding", en:"Rice pudding"} },
+      { id:"san-sebastian-sade", name:"San Sebastian Sade", img:null, price:null, soldOut:false,
+        desc:{tr:null, fr:"Cheesecake basque nature", nl:"Baskische cheesecake, naturel", en:"Basque cheesecake, plain"} },
+      { id:"san-sebastian-fistikli", name:"San Sebastian Fıstıklı", img:null, price:null, soldOut:false,
+        desc:{tr:null, fr:"Cheesecake basque à la pistache", nl:"Baskische cheesecake met pistache", en:"Basque cheesecake with pistachio"} },
+    ]},
+
+  { id:"sicak", layout:"list",
+    title:{tr:"Sıcak İçecekler", fr:"Boissons chaudes", nl:"Warme dranken", en:"Hot drinks"},
+    items:[
+      { id:"cay", name:{tr:"Çay", fr:"Thé turc", nl:"Turkse thee", en:"Turkish tea"}, price:null, soldOut:false },
+      { id:"espresso", name:"Espresso", price:null, soldOut:false },
+      { id:"cappuccino", name:"Cappuccino", price:null, soldOut:false },
+      { id:"latte", name:"Latte", price:null, soldOut:false },
+    ]},
+
+  { id:"matcha", layout:"list",
+    title:{tr:"Matcha", fr:"Matcha", nl:"Matcha", en:"Matcha"},
+    items:[
+      { id:"matcha", name:"Matcha", price:null, soldOut:false },
+      { id:"matcha-strawberry", name:{tr:"Matcha Strawberry", fr:"Matcha fraise", nl:"Matcha aardbei", en:"Matcha strawberry"}, price:null, soldOut:false },
+      { id:"matcha-mango", name:{tr:"Matcha Mango", fr:"Matcha mangue", nl:"Matcha mango", en:"Matcha mango"}, price:null, soldOut:false },
+    ]},
+
+  { id:"soguk", layout:"list",
+    title:{tr:"Soğuk İçecekler", fr:"Boissons fraîches", nl:"Frisdranken", en:"Cold drinks"},
+    items:[
+      { id:"ritchie-cola", name:"Ritchie Cola", price:null, soldOut:false },
+      { id:"cola-zero", name:"Cola Zero", price:null, soldOut:false },
+      { id:"lemon", name:"Lemon", price:null, soldOut:false },
+      { id:"orange", name:"Orange", price:null, soldOut:false },
+    ]},
+];
+</script>
+
+<style>
+  :root{
+    --cream:#FFF8E7; --bej:#F5E6D3;
+    --gold:#D4AF37; --gold-deep:#B8941F; --gold-soft:#E4C868;
+    --brown:#3E2723; --brown-mid:#6D4C41;
+    --syrup:#C9781E;
+    --line:rgba(62,39,35,.14);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-padding-top:calc(64px + env(safe-area-inset-top,0px));-webkit-text-size-adjust:100%}
+  body{font-family:'Figtree',system-ui,-apple-system,sans-serif;background:var(--cream);color:var(--brown);
+       -webkit-font-smoothing:antialiased;padding-bottom:env(safe-area-inset-bottom,0px)}
+  body.locked{overflow:hidden}
+  .serif{font-family:'Cormorant Garamond',Georgia,serif}
+  button{font:inherit;color:inherit}
+  :focus-visible{outline:2px solid var(--gold-deep);outline-offset:3px;border-radius:6px}
+
+  /* ================= AÇILIŞ EKRANI ================= */
+  #splash{position:fixed;inset:0;z-index:50;background:var(--cream);display:flex;flex-direction:column;
+          align-items:center;justify-content:center;text-align:center;
+          padding:calc(28px + env(safe-area-inset-top,0px)) 24px calc(28px + env(safe-area-inset-bottom,0px));
+          overflow:hidden;transition:opacity .55s ease, transform .7s cubic-bezier(.7,0,.2,1)}
+  #splash.out{opacity:0;transform:translateY(-6%) scale(1.04);pointer-events:none}
+  .strands{position:absolute;inset:-10% -10% auto;height:48%;width:120%;opacity:.5;pointer-events:none}
+  .strands.bottom{inset:auto -10% -10%;transform:scaleY(-1)}
+  .strands path{fill:none;stroke:var(--gold-soft);stroke-width:1.1}
+  .sp-inner{position:relative;max-width:360px}
+  .logo-wrap{width:96px;height:96px;margin:0 auto 16px;border-radius:50%;border:2px solid var(--gold);
+             overflow:hidden;background:var(--bej);display:grid;place-items:center}
+  .logo-wrap img{width:100%;height:100%;object-fit:cover;display:block}
+  /* gerçek logo yüklenince: çember yok, logo tek başına */
+  .logo-wrap.has-img{border:none;border-radius:0;background:none;overflow:visible;width:auto;max-width:220px;height:110px}
+  .logo-wrap.has-img img{width:auto;height:100%;max-width:100%;object-fit:contain;mix-blend-mode:multiply}
+  header .logo-wrap.has-img{width:auto;max-width:160px;height:72px}
+  .logo-wrap .mono{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:48px;color:var(--gold-deep);line-height:1}
+  .sp-name{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:44px;line-height:1}
+  .sp-sub{font-family:'Cormorant Garamond',serif;font-style:italic;font-weight:600;font-size:22px;color:var(--gold-deep);margin-top:4px}
+  .sp-city{margin-top:10px;font-size:13px;letter-spacing:.14em;color:var(--brown-mid)}
+  .rule{width:60px;height:2px;background:var(--gold);margin:20px auto 0;border-radius:2px}
+  .ask{margin-top:22px;font-size:14px;line-height:1.75;color:var(--brown-mid)}
+  .flags{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:22px}
+  .flag{display:flex;flex-direction:column;align-items:center;gap:9px;padding:16px 10px 13px;border-radius:16px;
+        background:#fff;border:1px solid var(--line);cursor:pointer;transition:transform .15s, border-color .15s}
+  .flag:active{transform:scale(.96)}
+  .flag.picked{border-color:var(--gold);box-shadow:0 0 0 3px rgba(212,175,55,.25)}
+  .flag svg{width:54px;height:36px;border-radius:4px;box-shadow:0 1px 3px rgba(62,39,35,.25);display:block}
+  .flag span{font-weight:600;font-size:15px}
+
+  /* ================= ÜST BAŞLIK ================= */
+  .wrap{max-width:640px;margin:0 auto;padding:0 20px 56px}
+  header{text-align:center;padding:calc(26px + env(safe-area-inset-top,0px)) 0 4px}
+  header .logo-wrap{width:64px;height:64px;margin-bottom:10px}
+  header .logo-wrap .mono{font-size:32px}
+  .h-name{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:32px;line-height:1.05}
+  .h-sub{font-family:'Cormorant Garamond',serif;font-style:italic;font-weight:600;font-size:18px;color:var(--gold-deep)}
+  .langs{display:flex;justify-content:center;gap:6px;margin:16px 0 0}
+  .langs button{font-size:13px;font-weight:600;letter-spacing:.06em;padding:7px 15px;border-radius:999px;
+                border:1px solid var(--line);background:transparent;color:var(--brown-mid);cursor:pointer}
+  .langs button.active{background:var(--brown);color:var(--cream);border-color:var(--brown)}
+
+  /* ================= KATEGORİ SEKMELERİ ================= */
+  .tabs{position:sticky;top:0;z-index:10;background:var(--cream);
+        border-bottom:1px solid var(--line);margin-top:18px;padding-top:env(safe-area-inset-top,0px)}
+  .tabs-in{max-width:640px;margin:0 auto;display:flex;gap:6px;overflow-x:auto;padding:10px 20px;scrollbar-width:none}
+  .tabs-in::-webkit-scrollbar{display:none}
+  .tab{flex-shrink:0;white-space:nowrap;font-size:14px;font-weight:600;padding:8px 14px;border-radius:999px;
+       border:none;background:transparent;color:var(--brown-mid);cursor:pointer;transition:background .2s,color .2s}
+  .tab.on{background:var(--bej);color:var(--brown)}
+
+  /* ================= BÖLÜMLER ================= */
+  section{margin-top:36px}
+  .sec-title{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;display:flex;align-items:center;gap:14px}
+  .sec-title::after{content:"";flex:1;height:1px;background:var(--line)}
+  .sec-note{font-size:14px;color:var(--brown-mid);margin-top:4px;line-height:1.5}
+
+  /* ürünler: telefonda ikili ızgara */
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px}
+  @media (min-width:560px){ .grid{gap:16px} }
+  .card{display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+  .thumb{position:relative;aspect-ratio:1/1;background:var(--bej);display:grid;place-items:center}
+  .thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+  .card{contain:layout paint}
+  .thumb .mono{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:46px;color:var(--gold-deep);opacity:.55}
+  .thumb .badge,.thumb .sold-tag{position:absolute;top:8px;left:8px;margin:0}
+  .info{display:flex;flex-direction:column;flex:1;padding:10px 11px 12px}
+  .name{font-weight:600;font-size:14.5px;line-height:1.28}
+  .desc{font-size:12.5px;color:var(--brown-mid);margin-top:3px;line-height:1.4}
+  .price{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:20px;line-height:1.1;white-space:nowrap}
+  .info .price{margin-top:auto;padding-top:8px}
+  .badge{display:inline-block;font-size:11px;font-weight:600;color:var(--gold-deep);background:var(--cream);
+         border:1px solid var(--gold-soft);border-radius:999px;padding:2px 9px}
+
+  /* künefe kişilik fiyatları: kartın altında satır satır */
+  .sizes{margin-top:auto;padding-top:8px;display:flex;flex-direction:column}
+  .size{display:flex;justify-content:space-between;align-items:baseline;gap:6px;font-size:12px;color:var(--brown-mid);
+        padding:4px 0;border-top:1px dashed var(--line)}
+  .size b{font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--brown);font-weight:700;margin-right:3px}
+  .size i{font-style:normal;font-weight:600;color:var(--syrup);white-space:nowrap}
+  .sizes.bare{font-size:12.5px;color:var(--brown-mid)}
+
+  /* içecek listesi */
+  .row{display:flex;align-items:baseline;gap:10px;padding:13px 0;border-bottom:1px dashed var(--line)}
+  .row:last-child{border-bottom:none}
+  .row .name{font-size:15px}
+  .dots{flex:1;border-bottom:1.5px dotted rgba(62,39,35,.28);transform:translateY(-4px);min-width:24px}
+  .row .price{font-size:18px}
+
+  /* tükendi */
+  .sold{opacity:.5}
+  .card.sold{opacity:1}
+  .card.sold img,.card.sold .mono,.card.sold .info{opacity:.45}
+  .card.sold .thumb{filter:grayscale(.7)}
+  .sold .name{text-decoration:line-through;text-decoration-color:rgba(62,39,35,.4)}
+  .sold-tag{display:inline-block;font-size:11px;font-weight:600;color:#fff;background:var(--brown-mid);
+            border-radius:999px;padding:2px 9px;margin-top:6px;opacity:1}
+
+  footer{margin-top:44px;text-align:center;font-size:13px;color:var(--brown-mid);line-height:1.9}
+  footer a{color:var(--brown);text-decoration:none;font-weight:600}
+  .foot-rule{width:38px;height:1px;background:var(--gold);margin:0 auto 14px}
+
+  #app{opacity:0;transition:opacity .6s ease .15s}
+  #app.in{opacity:1}
+
+  @media (prefers-reduced-motion: reduce){
+    #splash,#app{transition:none}
+  }
+</style>
+</head>
+<body class="locked">
+
+<!-- ================= AÇILIŞ EKRANI ================= -->
+<div id="splash" role="dialog" aria-label="Taal kiezen / Choose language">
+  <svg class="strands" viewBox="0 0 400 200" preserveAspectRatio="none" aria-hidden="true"></svg>
+  <svg class="strands bottom" viewBox="0 0 400 200" preserveAspectRatio="none" aria-hidden="true"></svg>
+
+  <div class="sp-inner">
+    <div class="logo-wrap" data-logo></div>
+    <div class="sp-name" data-shop-name></div>
+    <div class="sp-sub" data-shop-sub></div>
+    <div class="sp-city" data-shop-city></div>
+    <div class="rule"></div>
+    <div class="ask">
+      Kies uw taal<br>
+      Choisissez votre langue<br>
+      Dilinizi seçiniz · Choose your language
+    </div>
+
+    <div class="flags">
+      <button class="flag" data-pick="nl">
+        <svg viewBox="0 0 60 40" aria-hidden="true">
+          <rect width="60" height="13.34" fill="#AE1C28"/>
+          <rect y="13.34" width="60" height="13.33" fill="#fff"/>
+          <rect y="26.67" width="60" height="13.33" fill="#21468B"/>
+        </svg>
+        <span>Nederlands</span>
+      </button>
+      <button class="flag" data-pick="fr">
+        <svg viewBox="0 0 60 40" aria-hidden="true">
+          <rect width="20" height="40" fill="#002395"/>
+          <rect x="20" width="20" height="40" fill="#fff"/>
+          <rect x="40" width="20" height="40" fill="#ED2939"/>
+        </svg>
+        <span>Français</span>
+      </button>
+      <button class="flag" data-pick="tr">
+        <svg viewBox="0 0 60 40" aria-hidden="true">
+          <rect width="60" height="40" fill="#E30A17"/>
+          <circle cx="23" cy="20" r="9" fill="#fff"/>
+          <circle cx="26.5" cy="20" r="7.2" fill="#E30A17"/>
+          <path fill="#fff" d="M38.2 13.6l1.9 5.2 5.5.2-4.3 3.4 1.5 5.3-4.6-3.1-4.6 3.1 1.5-5.3-4.3-3.4 5.5-.2z"/>
+        </svg>
+        <span>Türkçe</span>
+      </button>
+      <button class="flag" data-pick="en">
+        <svg viewBox="0 0 60 30" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <clipPath id="ukc"><path d="M30,15 h30 v15 z v15 h-30 z h-30 v-15 z v-15 h30 z"/></clipPath>
+          <rect width="60" height="30" fill="#012169"/>
+          <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/>
+          <path d="M0,0 L60,30 M60,0 L0,30" clip-path="url(#ukc)" stroke="#C8102E" stroke-width="4"/>
+          <path d="M30,0 v30 M0,15 h60" stroke="#fff" stroke-width="10"/>
+          <path d="M30,0 v30 M0,15 h60" stroke="#C8102E" stroke-width="6"/>
+        </svg>
+        <span>English</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= MENÜ ================= -->
+<div id="app" aria-hidden="true">
+  <div class="wrap" style="padding-bottom:0">
+    <header>
+      <div class="logo-wrap" data-logo></div>
+      <div class="h-name" data-shop-name></div>
+      <div class="h-sub" data-shop-sub></div>
+      <nav class="langs" aria-label="Language">
+        <button data-set="nl">NL</button>
+        <button data-set="fr">FR</button>
+        <button data-set="tr">TR</button>
+        <button data-set="en">EN</button>
+      </nav>
+    </header>
+  </div>
+
+  <nav class="tabs" aria-label="Menu"><div class="tabs-in" id="tabs"></div></nav>
+
+  <main class="wrap" id="menu"></main>
+
+  <footer class="wrap" id="foot"></footer>
+</div>
+
+<script>
+/* ÜRÜN FOTOĞRAFLARI — img/ klasöründe. Ürün id'si → fotoğraf.
+   Aynı fotoğraf birden fazla ürüne atanabilir (ör. hasır künefeler). */
+const PHOTOS = {
+ "p4442": "img/ezmeli-dondurma.jpg",
+ "p4446": "img/burma-kadayif.jpg",
+ "p4448": "img/peynirli-kunefe.jpg",
+ "p4450": "img/yari-yari-peynirli.jpg",
+ "p4452": "img/peynirli-hasir-kunefe.jpg",
+ "p4454": "img/san-sebastian-sade.jpg",
+ "p4456": "img/san-sebastian-fistikli.jpg",
+ "p4500": "img/sutlu-sade-dondurma.jpg",
+ "p4502": "img/fistikli-dondurma.jpg",
+ "p4504": "img/cikolatali-dondurma.jpg",
+ "p4506": "img/sutlac.jpg",
+ "p4509": "img/kup-dondurma.jpg",
+ "p4511": "img/duz-kadayif.jpg",
+ "p4513": "img/toz-fistikli-belluriye.jpg",
+ "p4515": "img/iri-fistikli-belluriye.jpg",
+ "p481": "img/soguk-baklava.jpg",
+ "p482": "img/bohca.jpg",
+ "p483": "img/sobiyet.jpg",
+ "p484": "img/sarma.jpg",
+ "p485": "img/cevizli-baklava.jpg",
+ "p486": "img/fistikli-baklava.jpg",
+ "p487": "img/hasir-kadayif.jpg",
+ "p488": "img/kup-kadayif.jpg"
+};
+const IMG_OF = {
+ "ezmeli-dondurma": "p4442",
+ "burma-kadayif": "p4446",
+ "peynirli-kunefe": "p4448",
+ "yari-yari-peynirli": "p4450",
+ "yari-yari-kaymakli": "p4450",
+ "peynirli-hasir-kunefe": "p4452",
+ "kaymakli-hasir-kunefe": "p4452",
+ "san-sebastian-sade": "p4454",
+ "san-sebastian-fistikli": "p4456",
+ "sutlu-sade-dondurma": "p4500",
+ "fistikli-dondurma": "p4502",
+ "cikolatali-dondurma": "p4504",
+ "sutlac": "p4506",
+ "kup-dondurma": "p4509",
+ "duz-kadayif": "p4511",
+ "toz-fistikli-belluriye": "p4513",
+ "iri-fistikli-belluriye": "p4515",
+ "soguk-baklava": "p481",
+ "bohca": "p482",
+ "sobiyet": "p483",
+ "sarma": "p484",
+ "cevizli-baklava": "p485",
+ "fistikli-baklava": "p486",
+ "hasir-kadayif": "p487",
+ "kup-kadayif": "p488"
+};
+</script>
+<script>
+const T = {
+  pers:    {tr:"kişilik", fr:"pers.", nl:"pers.", en:"pers."},
+  sizes:   {tr:"kişilik", fr:"personnes", nl:"personen", en:"people"},
+  sold:    {tr:"Tükendi", fr:"Épuisé", nl:"Uitverkocht", en:"Sold out"},
+  wa:      {tr:"WhatsApp'tan yazın", fr:"Écrivez-nous sur WhatsApp", nl:"Stuur ons een WhatsApp", en:"Message us on WhatsApp"},
+};
+const root = document.documentElement;
+let LANG = "nl";
+
+const fmt = n => n.toLocaleString('fr-BE',{minimumFractionDigits:2,maximumFractionDigits:2}) + " €";
+const tx  = v => v == null ? null : (typeof v === "string" ? v : (v[LANG] ?? null));
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---------- dükkan bilgileri ---------- */
+function mono(ch){ return `<span class="mono">${esc((ch||SHOP.name).charAt(0))}</span>`; }
+document.querySelectorAll('[data-logo]').forEach(el=>{
+  if(!SHOP.logo){ el.innerHTML = mono(); return; }
+  /* logo ana klasörde de img/ içinde de olabilir, jpg ya da png */
+  const tries = [SHOP.logo, "img/logo.jpg", "logo.png", "img/logo.png", "logo.jpeg", "img/logo.jpeg"];
+  let i = 0;
+  const img = new Image(); img.alt = SHOP.name;
+  img.onerror = () => { i++; if(i < tries.length) img.src = tries[i]; else el.innerHTML = mono(); };
+  img.onload = () => el.classList.add('has-img');
+  img.src = tries[0];
+  el.appendChild(img);
+});
+document.querySelectorAll('[data-shop-name]').forEach(el=> el.textContent = SHOP.name);
+document.querySelectorAll('[data-shop-sub]').forEach(el=> el.textContent = SHOP.sub);
+document.querySelectorAll('[data-shop-city]').forEach(el=> el.textContent = "Gaziantep  ·  " + SHOP.city);
+
+/* ---------- kadayıf telleri (açılış ekranı arka planı) ---------- */
+document.querySelectorAll('.strands').forEach((svg,k)=>{
+  let d = "";
+  for(let i=0;i<22;i++){
+    const y = 20 + i*7 + (k*3);
+    const a = 6 + (i%5)*2, f = 0.018 + (i%3)*0.004, ph = i*0.9;
+    let p = `M-10 ${y}`;
+    for(let x=0;x<=420;x+=10){ p += ` L${x} ${(y + Math.sin(x*f+ph)*a).toFixed(1)}`; }
+    d += `<path d="${p}" opacity="${(0.35 + (i%4)*0.18).toFixed(2)}"/>`;
+  }
+  svg.innerHTML = d;
+});
+
+/* ---------- menü çizimi ---------- */
+function thumb(it){
+  return `<div class="thumb">${it.img ? `<img src="${it.img}" alt="${esc(tx(it.name))}" loading="lazy">` : mono(tx(it.name))}</div>`;
+}
+function sizesHTML(prices){
+  const keys = Object.keys(prices).map(Number).sort((a,b)=>a-b);
+  const anyPrice = keys.some(k => prices[k] != null);
+  if(!anyPrice){
+    return `<div class="sizes bare">${keys.join(" · ")} ${T.sizes[LANG]}</div>`;
+  }
+  return `<div class="sizes">${keys.map(k=>`<div class="size"><span><b>${k}</b>${T.pers[LANG]}</span>${prices[k]!=null?`<i>${fmt(prices[k])}</i>`:""}</div>`).join("")}</div>`;
+}
+function card(it){
+  const name = tx(it.name), desc = it.desc ? tx(it.desc) : null, badge = it.badge ? tx(it.badge) : null;
+  const src = it.img || (IMG_OF[it.id] ? PHOTOS[IMG_OF[it.id]] : null);
+  const tag = it.soldOut ? `<span class="sold-tag">${T.sold[LANG]}</span>` : (badge ? `<span class="badge">${esc(badge)}</span>` : "");
+  return `<article class="card${it.soldOut?' sold':''}" data-id="${it.id}">
+    <div class="thumb">${src ? `<img src="${src}" alt="${esc(name)}" width="560" height="560" loading="lazy" decoding="async">` : mono(name)}${tag}</div>
+    <div class="info">
+      <h3 class="name">${esc(name)}</h3>
+      ${desc ? `<p class="desc">${esc(desc)}</p>` : ""}
+      ${it.prices ? sizesHTML(it.prices) : ""}
+      ${it.price!=null ? `<span class="price">${fmt(it.price)}</span>` : ""}
+    </div>
+  </article>`;
+}
+function row(it){
+  return `<div class="row${it.soldOut?' sold':''}" data-id="${it.id}">
+    <span class="name">${esc(tx(it.name))}</span>
+    ${it.soldOut ? `<span class="sold-tag">${T.sold[LANG]}</span>` : ""}
+    <span class="dots"></span>
+    <span class="price">${it.price!=null ? fmt(it.price) : "&nbsp;"}</span>
+  </div>`;
+}
+function render(){
+  document.getElementById('tabs').innerHTML =
+    MENU.map(c=>`<button class="tab" data-go="${c.id}">${esc(tx(c.title))}</button>`).join("");
+  document.getElementById('menu').innerHTML = MENU.map(c=>`
+    <section id="${c.id}">
+      <h2 class="sec-title">${esc(tx(c.title))}</h2>
+      ${c.note ? `<p class="sec-note">${esc(tx(c.note))}</p>` : ""}
+      <div class="${c.layout==="list" ? "list" : "grid"}">${c.items.map(c.layout==="list" ? row : card).join("")}</div>
+    </section>`).join("");
+
+  const f = [];
+  f.push(`<div class="foot-rule"></div>${esc(SHOP.name)} · ${esc(SHOP.city)}`);
+  if(SHOP.address) f.push(esc(SHOP.address));
+  const links = [];
+  if(SHOP.phone)     links.push(`<a href="tel:${SHOP.phone.replace(/\s/g,'')}">${esc(SHOP.phone)}</a>`);
+  if(SHOP.whatsapp)  links.push(`<a href="https://wa.me/${SHOP.whatsapp}">WhatsApp</a>`);
+  if(SHOP.instagram) links.push(`<a href="${SHOP.instagram}">Instagram</a>`);
+  if(SHOP.tiktok)    links.push(`<a href="${SHOP.tiktok}">TikTok</a>`);
+  if(links.length) f.push(links.join(" · "));
+  if(SHOP.hours) f.push(`<span style="font-size:12px">${esc(tx(SHOP.hours))}</span>`);
+  document.getElementById('foot').innerHTML = f.join("<br>");
+
+  document.querySelectorAll('.tab').forEach(b=> b.addEventListener('click', ()=>{
+    document.getElementById(b.dataset.go).scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
+  }));
+  spy();
+}
+
+/* ---------- hangi kategoride olduğunu sekmede göster ---------- */
+let obs;
+function spy(){
+  if(obs) obs.disconnect();
+  obs = new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      if(!e.isIntersecting) return;
+      document.querySelectorAll('.tab').forEach(t=>{
+        const on = t.dataset.go === e.target.id;
+        t.classList.toggle('on', on);
+        if(on && !t.classList.contains('was-on')){
+          const strip = t.parentElement;
+          strip.scrollTo({left: t.offsetLeft - (strip.clientWidth - t.offsetWidth)/2, behavior:'smooth'});
+        }
+        t.classList.toggle('was-on', on);
+      });
+    });
+  }, {rootMargin:"-12% 0px -75% 0px"});
+  document.querySelectorAll('#menu section').forEach(s=>obs.observe(s));
+}
+
+/* ---------- dil ---------- */
+function warmImages(){
+  Object.values(PHOTOS).forEach(u=>{ const i=new Image(); i.src=u; if(i.decode) i.decode().catch(()=>{}); });
+}
+function setLang(l){
+  LANG = l;
+  root.dataset.lang = l; root.lang = l;
+  document.querySelectorAll('.langs button').forEach(b=> b.classList.toggle('active', b.dataset.set === l));
+  render();
+}
+document.querySelectorAll('.langs button').forEach(b=> b.addEventListener('click', ()=> setLang(b.dataset.set)));
+
+/* ---------- bayrağa dokununca menü açılır ---------- */
+document.querySelectorAll('.flag').forEach(b=> b.addEventListener('click', ()=>{
+  b.classList.add('picked');
+  setLang(b.dataset.pick);
+  const splash = document.getElementById('splash'), app = document.getElementById('app');
+  setTimeout(()=>{
+    splash.classList.add('out');
+    app.classList.add('in'); app.removeAttribute('aria-hidden');
+    document.body.classList.remove('locked');
+    window.scrollTo(0,0);
+    setTimeout(()=> splash.remove(), 800);
+  }, 180);
+}));
+
+/* telefon diline göre bayrağı öne çıkar (ekran yine gösterilir) */
+const nav = (navigator.language||"nl").slice(0,2).toLowerCase();
+setLang(["tr","fr","nl","en"].includes(nav) ? nav : "nl");
+</script>
+</body>
+</html>
