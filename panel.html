@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#3E2723">
+<title>Personel Paneli — Çavuşzade Antwerpen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="supabase-config.js"></script>
+<style>
+  :root{
+    --cream:#FFF8E7; --bej:#F5E6D3; --gold:#D4AF37; --gold-deep:#B8941F;
+    --brown:#3E2723; --brown-mid:#6D4C41; --line:rgba(62,39,35,.14);
+    --red:#B3261E; --red-bg:#FBE9E7; --green:#2E7D32; --green-bg:#E8F5E9; --blue:#1F4E8C;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html{-webkit-text-size-adjust:100%}
+  body{font-family:'Figtree',system-ui,-apple-system,sans-serif;background:var(--cream);color:var(--brown);
+       -webkit-font-smoothing:antialiased;min-height:100vh}
+  button{font:inherit;color:inherit;border:none;background:none;cursor:pointer}
+  [hidden]{display:none!important}
+  .serif{font-family:'Cormorant Garamond',Georgia,serif}
+
+  /* ---------- PIN ---------- */
+  #lock{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+        padding:calc(24px + env(safe-area-inset-top,0px)) 24px calc(24px + env(safe-area-inset-bottom,0px));text-align:center}
+  #lock h1{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:700;line-height:1}
+  #lock .sub{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-deep);margin-top:8px;font-weight:600}
+  .dots{display:flex;gap:16px;margin:34px 0 10px}
+  .dots i{width:16px;height:16px;border-radius:50%;border:2px solid var(--brown-mid);transition:background .15s}
+  .dots i.on{background:var(--brown);border-color:var(--brown)}
+  .dots.shake{animation:shake .4s}
+  @keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+  #lockMsg{min-height:20px;font-size:14px;color:var(--red);font-weight:600}
+  .pad{display:grid;grid-template-columns:repeat(3,76px);gap:14px;margin-top:14px}
+  .pad button{height:76px;border-radius:50%;background:#fff;border:1px solid var(--line);font-size:28px;font-weight:600}
+  .pad button:active{background:var(--bej);transform:scale(.95)}
+  .pad .ghost{background:none;border:none;font-size:15px;color:var(--brown-mid)}
+
+  /* ---------- Üst bar + sekmeler ---------- */
+  header{position:sticky;top:0;z-index:20;background:var(--brown);color:var(--cream);
+         padding:calc(10px + env(safe-area-inset-top,0px)) 12px 0}
+  .hrow{max-width:720px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:0 4px}
+  .hrow b{flex:1;font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700}
+  .hbtn{padding:7px 12px;border-radius:999px;border:1px solid rgba(255,248,231,.35);font-size:13px;font-weight:600;color:var(--cream)}
+  .queue{background:var(--gold);color:var(--brown);border-color:var(--gold)}
+  .tabs{max-width:720px;margin:8px auto 0;display:grid;grid-template-columns:repeat(3,1fr)}
+  .tabs button{padding:11px 4px 12px;font-size:15px;font-weight:700;color:rgba(255,248,231,.65);border-bottom:3px solid transparent}
+  .tabs button.on{color:var(--cream);border-bottom-color:var(--gold)}
+  .tabs .n{display:inline-block;min-width:20px;padding:0 6px;margin-left:5px;border-radius:999px;background:var(--gold);color:var(--brown);font-size:12px;line-height:20px}
+  .tabs .n:empty{display:none}
+
+  main{max-width:720px;margin:0 auto;padding:4px 14px 40px}
+  h2{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;margin:20px 2px 8px;display:flex;align-items:center;gap:10px}
+  h2::after{content:"";flex:1;height:1px;background:var(--line)}
+
+  /* ---------- SİPARİŞ ---------- */
+  #vOrder{padding-bottom:calc(150px + env(safe-area-inset-bottom,0px))}
+  .pgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  @media(min-width:520px){.pgrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+  .prod{position:relative;display:flex;flex-direction:column;justify-content:space-between;gap:6px;min-height:74px;text-align:left;
+        padding:11px 12px;background:#fff;border:1px solid var(--line);border-radius:14px;transition:transform .08s}
+  .prod:active{transform:scale(.97);background:var(--bej)}
+  .prod .pn{font-size:15px;font-weight:600;line-height:1.2}
+  .prod .pp{font-size:13px;color:var(--brown-mid);font-weight:600}
+  .prod .q{position:absolute;top:-7px;right:-5px;min-width:26px;height:26px;padding:0 7px;border-radius:999px;background:var(--brown);
+           color:var(--cream);font-size:14px;font-weight:700;display:grid;place-items:center;box-shadow:0 1px 4px rgba(0,0,0,.25)}
+  .prod.in{border-color:var(--brown);box-shadow:inset 0 0 0 1px var(--brown)}
+  .prod.out{opacity:.45}
+  .prod.out .pp::after{content:" · tükendi";color:var(--red)}
+  .prod.other{border-style:dashed;background:transparent}
+
+  .cart{position:fixed;left:0;right:0;bottom:0;z-index:15;background:#fff;border-top:1px solid var(--line);
+        box-shadow:0 -6px 24px rgba(62,39,35,.12);padding:10px 14px calc(12px + env(safe-area-inset-bottom,0px))}
+  .cart-in{max-width:720px;margin:0 auto}
+  .sum{display:flex;align-items:center;gap:10px;width:100%;padding:4px 2px 10px;text-align:left}
+  .sum .cnt{font-size:14px;color:var(--brown-mid);font-weight:600}
+  .sum .tot{margin-left:auto;font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;line-height:1}
+  .sum .chev{font-size:13px;color:var(--brown-mid);transition:transform .2s}
+  .cart.open .chev{transform:rotate(180deg)}
+  .lines{max-height:42vh;overflow:auto;border-top:1px solid var(--line);margin:0 -2px 10px}
+  .line{display:flex;align-items:center;gap:10px;padding:10px 2px;border-bottom:1px dashed var(--line)}
+  .line .ln{flex:1;min-width:0;font-weight:600;font-size:15px}
+  .line .ln small{display:block;font-weight:500;color:var(--brown-mid);font-size:12.5px}
+  .step{display:flex;align-items:center;gap:4px}
+  .step button{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);font-size:20px;font-weight:600;background:var(--cream)}
+  .step b{min-width:22px;text-align:center}
+  .line .lp{min-width:56px;text-align:right;font-weight:700}
+  .clear{font-size:13px;font-weight:600;color:var(--red);padding:8px 2px 0}
+  .pays{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .pay{padding:17px 8px;border-radius:14px;font-size:17px;font-weight:700;color:#fff}
+  .pay.cash{background:var(--green)} .pay.card{background:var(--blue)}
+  .pay:disabled{opacity:.3}
+  .pay:active{transform:scale(.98)}
+
+  /* alt sayfa (künefe boyu / tutar) */
+  .sheet-bg{position:fixed;inset:0;z-index:40;background:rgba(30,18,15,.45);display:flex;align-items:flex-end;justify-content:center}
+  .sheet{width:100%;max-width:520px;background:var(--cream);border-radius:22px 22px 0 0;
+         padding:20px 16px calc(18px + env(safe-area-inset-bottom,0px));animation:up .2s ease}
+  @keyframes up{from{transform:translateY(40px);opacity:.4}}
+  .sheet h3{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;line-height:1.1}
+  .sheet p{font-size:14px;color:var(--brown-mid);margin-top:4px}
+  .sizes{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+  .sizes button{padding:14px 6px;border-radius:14px;background:#fff;border:1px solid var(--line);font-weight:700;font-size:16px;line-height:1.25}
+  .sizes button small{display:block;font-weight:600;color:var(--brown-mid);font-size:13px}
+  .sizes button:active{background:var(--bej)}
+  .amount{font-family:'Cormorant Garamond',serif;font-size:44px;font-weight:700;text-align:center;margin:14px 0 6px}
+  .kp{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .kp button{padding:15px 0;border-radius:12px;background:#fff;border:1px solid var(--line);font-size:22px;font-weight:600}
+  .sheet .row2{display:grid;grid-template-columns:1fr 1.4fr;gap:10px;margin-top:12px}
+  .btn{padding:15px;border-radius:14px;font-weight:700;font-size:16px;border:1.5px solid var(--brown)}
+  .btn.dark{background:var(--brown);color:var(--cream)}
+
+  /* ---------- BUGÜN ---------- */
+  .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:14px}
+  .stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+  .stat span{font-size:12.5px;color:var(--brown-mid);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+  .stat b{display:block;font-family:'Cormorant Garamond',serif;font-size:30px;line-height:1.1}
+  .stat.big{grid-column:1/-1;background:var(--brown);color:var(--cream);border-color:var(--brown)}
+  .stat.big span{color:rgba(255,248,231,.7)}
+  .ord{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:8px}
+  .ord .top{display:flex;align-items:center;gap:8px}
+  .ord .tm{font-weight:700}
+  .chip{font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px}
+  .chip.nakit{background:var(--green-bg);color:var(--green)} .chip.kart{background:#E3ECF7;color:var(--blue)}
+  .ord .ot{margin-left:auto;font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700}
+  .ord .its{font-size:14px;color:var(--brown-mid);margin-top:4px;line-height:1.45}
+  .ord .act{margin-top:6px;font-size:13px;font-weight:700;color:var(--red);padding:4px 0}
+  .ord.void{opacity:.5} .ord.void .ot{text-decoration:line-through}
+  .ord.void .act{color:var(--brown)}
+  .ord.pending{border-style:dashed}
+  .empty{text-align:center;color:var(--brown-mid);padding:40px 10px;font-size:15px}
+
+  /* ---------- TÜKENDİ ---------- */
+  .count{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;margin-top:14px}
+  .count .pill{background:var(--gold);color:var(--brown);border-radius:999px;padding:3px 11px;font-weight:700}
+  .count .pill.zero{background:var(--bej)}
+  .sync{margin-left:auto;font-size:12px;font-weight:500;color:var(--brown-mid)}
+  .list{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+  .item{display:flex;align-items:stretch;border-bottom:1px solid var(--line)}
+  .tog{flex:1;min-width:0;display:flex;align-items:center;gap:12px;text-align:left;padding:14px 10px 14px 14px;min-height:62px}
+  .hide{flex-shrink:0;align-self:center;margin-right:12px;padding:8px 11px;border-radius:999px;border:1px solid var(--line);
+        background:var(--cream);font-size:12.5px;font-weight:700;color:var(--brown-mid)}
+  .item.hid{background:repeating-linear-gradient(-45deg,#f6efe4,#f6efe4 8px,#fbf6ee 8px,#fbf6ee 16px)}
+  .item.hid .nm{color:var(--brown-mid);text-decoration:line-through}
+  .item.hid .st{color:var(--brown-mid)}
+  .item.hid .sw{opacity:.3}
+  .item.hid .hide{background:var(--brown);color:var(--cream);border-color:var(--brown)}
+  .jump{display:flex;gap:6px;overflow-x:auto;margin:12px -14px 0;padding:2px 14px;scrollbar-width:none}
+  .jump::-webkit-scrollbar{display:none}
+  .jump button{flex-shrink:0;white-space:nowrap;padding:8px 13px;border-radius:999px;background:#fff;border:1px solid var(--line);font-size:13.5px;font-weight:600}
+  .hint{font-size:13px;color:var(--brown-mid);margin-top:10px;line-height:1.45}
+  .item:last-child{border-bottom:none}
+  .item .nm{flex:1;min-width:0;font-size:16px;font-weight:600;line-height:1.25}
+  .item .st{display:block;font-size:12.5px;font-weight:600;color:var(--green);margin-top:2px}
+  .item.sold{background:var(--red-bg)} .item.sold .nm,.item.sold .st{color:var(--red)}
+  .item.busy{opacity:.55;pointer-events:none}
+  .sw{position:relative;flex-shrink:0;width:58px;height:34px;border-radius:999px;background:var(--green);transition:background .2s}
+  .sw::after{content:"";position:absolute;top:3px;left:27px;width:28px;height:28px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:left .2s}
+  .item.sold .sw{background:var(--red)} .item.sold .sw::after{left:3px}
+  .reset{display:block;width:100%;margin:18px 0 10px;padding:16px;border-radius:14px;background:#fff;border:1.5px solid var(--brown);font-weight:700;font-size:15px}
+  .reset.confirm{background:var(--brown);color:var(--cream)}
+  .reset:disabled{opacity:.4}
+
+  #toast{position:fixed;left:50%;top:calc(110px + env(safe-area-inset-top,0px));transform:translateX(-50%) translateY(-10px);z-index:50;
+         background:var(--brown);color:var(--cream);padding:10px 10px 10px 18px;border-radius:999px;font-size:14px;font-weight:600;
+         opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;max-width:calc(100% - 24px);display:flex;align-items:center;gap:12px;
+         box-shadow:0 6px 20px rgba(0,0,0,.25)}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
+  #toast.err{background:var(--red)}
+  #toast button{background:var(--cream);color:var(--brown);border-radius:999px;padding:6px 12px;font-weight:700;font-size:13px}
+  #toast:not(.has-btn){padding-right:18px}
+  .cfg{margin:14px 0;padding:14px 16px;border-radius:12px;background:var(--red-bg);color:var(--red);font-size:14px;font-weight:600}
+</style>
+</head>
+<body>
+
+<!-- ============ PIN ============ -->
+<section id="lock">
+  <h1>Çavuşzade</h1>
+  <div class="sub">Personel paneli</div>
+  <div class="dots" id="dots"><i></i><i></i><i></i><i></i></div>
+  <div id="lockMsg" role="status"></div>
+  <div class="pad" id="pad">
+    <button>1</button><button>2</button><button>3</button>
+    <button>4</button><button>5</button><button>6</button>
+    <button>7</button><button>8</button><button>9</button>
+    <button class="ghost" data-k="clr">Sil</button><button>0</button><button class="ghost" data-k="back">⌫</button>
+  </div>
+</section>
+
+<!-- ============ PANEL ============ -->
+<div id="panel" hidden>
+  <header>
+    <div class="hrow">
+      <b>Çavuşzade</b>
+      <button class="hbtn queue" id="queueBtn" hidden></button>
+      <button class="hbtn" id="logout">Çıkış</button>
+    </div>
+    <nav class="tabs">
+      <button data-tab="order">Sipariş</button>
+      <button data-tab="today">Bugün</button>
+      <button data-tab="sold">Tükendi<span class="n" id="soldN"></span></button>
+    </nav>
+  </header>
+
+  <!-- SİPARİŞ -->
+  <main id="vOrder">
+    <div class="cfg" id="cfgWarn" hidden>Supabase ayarı eksik: supabase-config.js dosyasına URL ve anahtar girilmeli.</div>
+    <div id="prods"></div>
+  </main>
+  <div class="cart" id="cart" hidden>
+    <div class="cart-in">
+      <div id="linesWrap" hidden>
+        <div class="lines" id="lines"></div>
+      </div>
+      <button class="sum" id="sumBtn"><span class="cnt" id="cnt">Sepet boş</span><span class="chev" id="chev">▲</span><span class="tot" id="tot">0 €</span></button>
+      <div class="pays">
+        <button class="pay cash" data-pay="nakit" disabled>Nakit</button>
+        <button class="pay card" data-pay="kart" disabled>Kart</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BUGÜN -->
+  <main id="vToday" hidden>
+    <div class="stats" id="stats"></div>
+    <h2>Siparişler</h2>
+    <div id="orders"></div>
+  </main>
+
+  <!-- TÜKENDİ -->
+  <main id="vSold" hidden>
+    <div class="count"><span class="pill" id="pill">0</span><span id="countTxt">ürün tükendi</span><span class="sync" id="sync"></span></div>
+    <div class="jump" id="jump"></div>
+    <p class="hint">Anahtar: bugünlük tükendi / var. <b>Gizle</b>: ürün menüden tamamen kalkar (ör. sezonu bitti), <b>Göster</b> ile geri gelir.</p>
+    <div id="list"></div>
+    <button class="reset" id="reset">Hepsini tekrar “var” yap</button>
+  </main>
+</div>
+
+<div id="sheet"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const FALLBACK = [{"id":"kunefe","title":"Künefeler","items":[{"id":"peynirli-kunefe","name":"Peynirli Künefe","prices":{"1":11,"2":22,"3":33,"4":44,"6":66}},{"id":"hasir-kunefe","name":"Hasır Künefe","prices":{"2":22,"3":33,"4":44,"6":66}},{"id":"yari-fistikli-yari-belluriye","name":"Yarı Fıstıklı Yarı Belluriye","prices":{"2":26,"3":39,"4":52,"6":78}},{"id":"mozaik-kunefe","name":"Mozaik Künefe","prices":{"2":26,"3":39,"4":52,"6":78}}]},{"id":"kadayif","title":"Porsiyon Kadayıflar","items":[{"id":"burma-kadayif","name":"Burma Kadayıf","price":40,"unit":"kg"},{"id":"fistikli-belluriye","name":"Fıstıklı Belluriye","price":40,"unit":"kg"},{"id":"soguk-hasir","name":"Soğuk Hasır","price":40,"unit":"kg"},{"id":"kup-kadayif","name":"Küp Kadayıf","price":12}]},{"id":"sutlu","title":"Sütlü Tatlılar","items":[{"id":"firin-sutlac","name":"Fırın Sütlaç","price":8},{"id":"san-sebastian-sade","name":"San Sebastian","price":8},{"id":"san-sebastian-fistikli","name":"San Sebastian Fıstıklı","price":9},{"id":"dubai-cup","name":"Dubai Cup","price":10},{"id":"soguk-baklava","name":"Soğuk Baklava","price":8}]},{"id":"dondurma","title":"Dondurmalar","items":[{"id":"ezmeli-dondurma","name":"Ezmeli Dondurma","price":6},{"id":"kup-dondurma","name":"Küp Dondurma","price":8},{"id":"sutlu-sade-dondurma","name":"Sütlü Sade Dondurma","price":8},{"id":"fistikli-dondurma","name":"Fıstıklı Dondurma","price":10},{"id":"cikolatali-dondurma","name":"Çikolatalı Dondurma","price":10}]},{"id":"soguk-icecek","title":"Soğuk İçecekler","items":[{"id":"cola","name":"Coca-Cola","price":3},{"id":"cola-zero","name":"Coca-Cola Zero","price":3},{"id":"fanta","name":"Fanta","price":3},{"id":"lipton-ice-tea","name":"Lipton Ice Tea","price":3},{"id":"fuze-tea","name":"Fuze Tea","price":3},{"id":"chaudfontaine","name":"Chaudfontaine","price":3},{"id":"red-bull","name":"Red Bull","price":3}]},{"id":"sicak","title":"Sıcak İçecekler","items":[{"id":"cay","name":"Çay","price":2},{"id":"kahve","name":"Kahve","price":3.5},{"id":"espresso","name":"Espresso","price":3}]},{"id":"soguk-kahve","title":"Soğuk Kahveler","items":[{"id":"ice-matcha-latte","name":"Ice Matcha Latte (çilek / mango)","price":6},{"id":"ice-cappuccino","name":"Ice Cappuccino","price":6}]}];
+
+const C = window.SUPA || {};
+const READY = C.URL && !String(C.URL).startsWith("BURAYA") && C.ANON_KEY && !String(C.ANON_KEY).startsWith("BURAYA");
+const BASE = READY ? C.URL.replace(/\/$/,"") : "";
+const H = {apikey:C.ANON_KEY, Authorization:"Bearer "+C.ANON_KEY, "Content-Type":"application/json"};
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const eur = n => (Math.round(n*100)/100).toLocaleString("fr-BE",{minimumFractionDigits:Number.isInteger(n)?0:2,maximumFractionDigits:2}) + " €";
+const uuid = () => (crypto.randomUUID ? crypto.randomUUID() :
+  "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)));
+
+let PIN = "", CATS = FALLBACK, SOLD = {}, HIDDEN = {}, TAB = "order";
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); }catch(e){ return d; } },
+  set(k, v){ try{ v == null ? localStorage.removeItem(k) : localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+
+/* ---------- yardımcılar ---------- */
+let toastT;
+function toast(msg, opt = {}){
+  const t = $("toast");
+  t.innerHTML = `<span>${esc(msg)}</span>${opt.btn ? `<button>${esc(opt.btn)}</button>` : ""}`;
+  t.classList.toggle("err", !!opt.err); t.classList.toggle("has-btn", !!opt.btn); t.classList.add("show");
+  if(opt.btn) t.querySelector("button").onclick = () => { t.classList.remove("show"); opt.onBtn(); };
+  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("show"), opt.ms || (opt.btn ? 6000 : opt.err ? 3500 : 1800));
+}
+async function rpc(fn, body){
+  const r = await fetch(`${BASE}/rest/v1/rpc/${fn}`, {method:"POST", headers:H, body:JSON.stringify(body)});
+  if(!r.ok){
+    let m = ""; try{ m = (await r.json()).message || ""; }catch(e){}
+    const err = new Error(m.includes("PIN") ? "PIN" : (m || "HTTP " + r.status)); err.server = true; throw err;
+  }
+  const txt = await r.text(); return txt ? JSON.parse(txt) : null;
+}
+function pinLost(err){ if(err && err.message === "PIN"){ logout("PIN değişmiş, tekrar giriş yapın"); return true; } return false; }
+
+/* ---------- menü (fiyatlarla) index.html'den ---------- */
+async function loadMenu(){
+  try{
+    const html = await (await fetch("index.html", {cache:"no-store"})).text();
+    const m = html.match(/const MENU = (\[[\s\S]*?\n\]);\s*<\/script>/);
+    if(!m) return;
+    const MENU = new Function("return " + m[1])();
+    const nm = n => typeof n === "string" ? n : (n.tr || n.nl || n.en);
+    const cats = MENU.map(c => ({id:c.id, title:nm(c.title), items:c.items.map(i => {
+      const o = {id:i.id, name:nm(i.name)};
+      if(i.prices) o.prices = i.prices; else o.price = i.price;
+      if(i.unit) o.unit = i.unit;
+      return o;
+    })}));
+    if(cats.length && cats.every(c => c.items.length)) CATS = cats;
+  }catch(e){}
+}
+const findItem = id => { for(const c of CATS) for(const i of c.items) if(i.id === id) return i; return null; };
+
+/* ================= SEKMELER ================= */
+function showTab(t){
+  TAB = t; store.set("cz_tab", t);
+  document.querySelectorAll(".tabs button").forEach(b => b.classList.toggle("on", b.dataset.tab === t));
+  $("vOrder").hidden = t !== "order"; $("cart").hidden = t !== "order";
+  $("vToday").hidden = t !== "today"; $("vSold").hidden = t !== "sold";
+  if(t === "today") loadToday();
+  if(t === "sold") refreshSold(true);
+  window.scrollTo(0, 0);
+}
+document.querySelectorAll(".tabs button").forEach(b => b.addEventListener("click", () => showTab(b.dataset.tab)));
+
+/* ================= SİPARİŞ ================= */
+let CART = [];   // {key, id, name, size, price, qty}
+const lineKey = (id, size, price, grams) => `${id}|${size || ""}|${grams || ""}|${price}`;
+
+function drawProds(){
+  const inCart = {}; CART.forEach(l => inCart[l.id] = (inCart[l.id] || 0) + l.qty);
+  $("prods").innerHTML = CATS.map(c => ({...c, items: c.items.filter(it => !HIDDEN[it.id])})).filter(c => c.items.length).map(c => `
+    <h2>${esc(c.title)}</h2>
+    <div class="pgrid">${c.items.map(it => {
+      const pp = it.prices ? "kişilik seç" : it.unit === "kg" ? `gram gir · ${eur(it.price)}/kg` : eur(it.price);
+      return `<button class="prod${inCart[it.id] ? " in" : ""}${SOLD[it.id] ? " out" : ""}" data-id="${esc(it.id)}">
+        <span class="pn">${esc(it.name)}</span><span class="pp">${esc(pp)}</span>
+        ${inCart[it.id] ? `<span class="q">${inCart[it.id]}</span>` : ""}
+      </button>`; }).join("")}
+    </div>`).join("") + `
+    <h2>Diğer</h2>
+    <div class="pgrid"><button class="prod other" data-id="__other"><span class="pn">Menüde olmayan</span><span class="pp">tutar gir</span></button></div>`;
+}
+function addLine(id, name, size, price, grams){
+  const key = lineKey(id, size, price, grams);
+  const l = CART.find(x => x.key === key);
+  if(l) l.qty++; else CART.push({key, id, name, size: size || null, grams: grams || null, price, qty: 1});
+  if(navigator.vibrate) try{ navigator.vibrate(12); }catch(e){}
+  drawCart(); drawProds();
+}
+$("prods").addEventListener("click", e => {
+  const b = e.target.closest(".prod"); if(!b) return;
+  const id = b.dataset.id;
+  if(id === "__other") return amountSheet("Menüde olmayan ürün", null, v => addLine("diger", "Diğer", null, v));
+  const it = findItem(id); if(!it) return;
+  if(it.prices) return sizeSheet(it);
+  if(it.unit === "kg") return weightSheet(it);
+  addLine(it.id, it.name, null, it.price ?? 0);
+});
+
+function drawCart(){
+  const n = CART.reduce((a, l) => a + l.qty, 0), tot = CART.reduce((a, l) => a + l.qty * l.price, 0);
+  $("cnt").textContent = n ? `${n} ürün` : "Sepet boş";
+  $("tot").textContent = eur(tot);
+  $("chev").style.visibility = n ? "visible" : "hidden";
+  document.querySelectorAll(".pay").forEach(b => b.disabled = !n || SAVING);
+  if(!n) openCart(false);
+  $("lines").innerHTML = CART.map((l, i) => `
+    <div class="line">
+      <span class="ln">${esc(l.name)}${l.size ? `<small>${l.size} kişilik</small>` : l.grams ? `<small>${l.grams} g</small>` : ""}</span>
+      <span class="step"><button data-i="${i}" data-d="-1" aria-label="azalt">−</button><b>${l.qty}</b><button data-i="${i}" data-d="1" aria-label="artır">+</button></span>
+      <span class="lp">${eur(l.qty * l.price)}</span>
+    </div>`).join("") + (n ? `<button class="clear" id="clearCart">Sepeti temizle</button>` : "");
+}
+function openCart(open){ $("linesWrap").hidden = !open; $("cart").classList.toggle("open", open); }
+$("sumBtn").addEventListener("click", () => { if(CART.length) openCart($("linesWrap").hidden); });
+$("lines").addEventListener("click", e => {
+  if(e.target.id === "clearCart"){ CART = []; drawCart(); drawProds(); return; }
+  const b = e.target.closest("button[data-i]"); if(!b) return;
+  const l = CART[+b.dataset.i]; l.qty += +b.dataset.d;
+  if(l.qty <= 0) CART.splice(+b.dataset.i, 1);
+  drawCart(); drawProds();
+});
+
+/* ---------- alt sayfalar ---------- */
+function closeSheet(){ $("sheet").innerHTML = ""; }
+function sizeSheet(it){
+  const sizes = Object.keys(it.prices).map(Number).sort((a, b) => a - b);
+  $("sheet").innerHTML = `<div class="sheet-bg"><div class="sheet">
+    <h3>${esc(it.name)}</h3><p>Kaç kişilik?</p>
+    <div class="sizes">${sizes.map(s => `<button data-s="${s}">${s} kişilik<small>${eur(it.prices[s])}</small></button>`).join("")}</div>
+    <div class="row2" style="grid-template-columns:1fr"><button class="btn" data-x>Vazgeç</button></div>
+  </div></div>`;
+  $("sheet").querySelector(".sheet-bg").onclick = e => {
+    if(e.target.classList.contains("sheet-bg") || e.target.closest("[data-x]")) return closeSheet();
+    const b = e.target.closest("[data-s]"); if(!b) return;
+    const s = +b.dataset.s; closeSheet(); addLine(it.id, it.name, s, it.prices[s]);
+  };
+}
+function weightSheet(it){
+  let g = "";
+  const perKg = Number(it.price) || 0;
+  const show = () => {
+    const n = parseInt(g || "0", 10);
+    $("amt").textContent = `${n} g`;
+    $("amtSub").textContent = n ? eur(Math.round(perKg * n / 10) / 100) : `${eur(perKg)} / kg`;
+  };
+  $("sheet").innerHTML = `<div class="sheet-bg"><div class="sheet">
+    <h3>${esc(it.name)}</h3><p>Kaç gram? (terazideki rakam)</p>
+    <div class="amount" id="amt" style="margin-bottom:0">0 g</div>
+    <p id="amtSub" style="text-align:center;margin:0 0 10px;font-weight:700;font-size:16px"></p>
+    <div class="sizes" style="grid-template-columns:repeat(4,1fr);margin:0 0 10px">
+      ${[250,500,750,1000].map(q => `<button data-q="${q}" style="padding:10px 4px">${q < 1000 ? q + " g" : "1 kg"}</button>`).join("")}
+    </div>
+    <div class="kp">${[1,2,3,4,5,6,7,8,9,"C",0,"⌫"].map(k => `<button data-k="${k}">${k}</button>`).join("")}</div>
+    <div class="row2"><button class="btn" data-x>Vazgeç</button><button class="btn dark" data-ok>Ekle</button></div>
+  </div></div>`;
+  show();
+  $("sheet").querySelector(".sheet-bg").onclick = e => {
+    if(e.target.classList.contains("sheet-bg") || e.target.closest("[data-x]")) return closeSheet();
+    if(e.target.closest("[data-ok]")){
+      const n = parseInt(g || "0", 10);
+      if(n > 0){ closeSheet(); addLine(it.id, it.name, null, Math.round(perKg * n / 10) / 100, n); }
+      return;
+    }
+    const q = e.target.closest("[data-q]"); if(q){ g = q.dataset.q; return show(); }
+    const b = e.target.closest("[data-k]"); if(!b) return;
+    const k = b.dataset.k;
+    if(k === "⌫") g = g.slice(0, -1); else if(k === "C") g = ""; else if(g.length < 5) g = (g === "0" ? "" : g) + k;
+    show();
+  };
+}
+function amountSheet(title, sub, done){
+  let v = "";
+  const show = () => $("amt").textContent = (v ? v.replace(".", ",") : "0") + " €";
+  $("sheet").innerHTML = `<div class="sheet-bg"><div class="sheet">
+    <h3>${esc(title)}</h3><p>${esc(sub || "Tutar")}</p>
+    <div class="amount" id="amt">0 €</div>
+    <div class="kp">${[1,2,3,4,5,6,7,8,9,",",0,"⌫"].map(k => `<button data-k="${k}">${k}</button>`).join("")}</div>
+    <div class="row2"><button class="btn" data-x>Vazgeç</button><button class="btn dark" data-ok>Ekle</button></div>
+  </div></div>`;
+  $("sheet").querySelector(".sheet-bg").onclick = e => {
+    if(e.target.classList.contains("sheet-bg") || e.target.closest("[data-x]")) return closeSheet();
+    if(e.target.closest("[data-ok]")){ const n = parseFloat(v); if(n > 0){ closeSheet(); done(Math.round(n*100)/100); } return; }
+    const b = e.target.closest("[data-k]"); if(!b) return;
+    const k = b.dataset.k;
+    if(k === "⌫") v = v.slice(0, -1);
+    else if(k === ","){ if(!v.includes(".")) v = (v || "0") + "."; }
+    else if(!(v.includes(".") && v.split(".")[1].length >= 2) && v.length < 6) v = (v === "0" ? "" : v) + k;
+    show();
+  };
+}
+
+/* ---------- kaydet (internet yoksa telefonda bekletir) ---------- */
+let SAVING = false;
+const queue = () => store.get("cz_queue", []);
+function setQueue(q){ store.set("cz_queue", q.length ? q : null); drawQueue(); }
+function drawQueue(){
+  const n = queue().length;
+  $("queueBtn").hidden = !n; $("queueBtn").textContent = `${n} gönderilmedi ↻`;
+}
+async function sendOne(o){
+  return rpc("order_add", {p_pin: PIN, p_key: o.key, p_items: o.items, p_pay: o.pay});
+}
+let flushing = false;
+async function flushQueue(){
+  if(flushing || !PIN) return; flushing = true;
+  try{
+    let q = queue();
+    for(const o of [...q]){
+      try{ await sendOne(o); q = queue().filter(x => x.key !== o.key); setQueue(q); }
+      catch(err){ if(pinLost(err)) break; if(err.server){ /* sunucu reddetti: bekletmeye devam */ } break; }
+    }
+  } finally { flushing = false; }
+  if(TAB === "today") loadToday();
+}
+$("queueBtn").addEventListener("click", async () => { await flushQueue(); if(queue().length) toast("Hâlâ gönderilemedi — internet?", {err:true}); else toast("Hepsi gönderildi"); });
+window.addEventListener("online", flushQueue);
+setInterval(() => { if(queue().length) flushQueue(); }, 20000);
+
+document.querySelectorAll(".pay").forEach(b => b.addEventListener("click", async () => {
+  if(!CART.length || SAVING) return;
+  const pay = b.dataset.pay;
+  const items = CART.map(l => ({id:l.id, name:l.name, size:l.size, grams:l.grams, qty:l.qty, price:l.price}));
+  const total = CART.reduce((a, l) => a + l.qty * l.price, 0);
+  const o = {key: uuid(), items, pay, total, at: new Date().toISOString()};
+  // önce telefona yaz: internet kopsa da kaybolmaz
+  setQueue([...queue(), o]);
+  CART = []; openCart(false); drawCart(); drawProds();
+  SAVING = true; drawCart();
+  try{
+    const id = await sendOne(o);
+    setQueue(queue().filter(x => x.key !== o.key));
+    toast(`Kaydedildi · ${eur(total)} ${pay}`, {btn:"Geri al", onBtn: () => undoOrder(id, o)});
+  }catch(err){
+    if(pinLost(err)) return;
+    toast(err.server ? "Sunucu hatası — sipariş telefonda saklandı, tekrar denenecek"
+                     : "İnternet yok — sipariş telefonda saklandı, bağlantı gelince gönderilecek", {err:true, ms:4500});
+  }finally{ SAVING = false; drawCart(); }
+}));
+async function undoOrder(id, o){
+  try{
+    await rpc("order_void", {p_pin: PIN, p_id: id, p_void: true});
+    // sepete geri koy ki düzeltilip tekrar kaydedilsin
+    CART = o.items.map(i => ({...i, key: lineKey(i.id, i.size, i.price, i.grams)}));
+    drawCart(); drawProds(); openCart(true);
+    toast("Geri alındı — sepet düzeltilebilir");
+  }catch(err){ if(!pinLost(err)) toast("Geri alınamadı — Bugün sekmesinden iptal edin", {err:true}); }
+}
+
+/* ================= BUGÜN ================= */
+let TODAY = [];
+async function loadToday(){
+  try{ TODAY = await rpc("orders_day", {p_pin: PIN}) || []; }
+  catch(err){ if(pinLost(err)) return; toast("Bugünün siparişleri okunamadı", {err:true}); }
+  drawToday();
+}
+const itemsText = items => items.map(i => `${i.qty}× ${i.name}${i.size ? ` (${i.size} kişilik)` : i.grams ? ` (${i.grams} g)` : ""}`).join(", ");
+function drawToday(){
+  const pend = queue();
+  const live = TODAY.filter(o => !o.voided);
+  const sum = (arr, p) => arr.filter(o => !p || o.pay === p).reduce((a, o) => a + Number(o.total), 0);
+  const pendSum = pend.reduce((a, o) => a + o.total, 0);
+  $("stats").innerHTML = `
+    <div class="stat big"><span>Bugün toplam</span><b>${eur(sum(live) + pendSum)}</b></div>
+    <div class="stat"><span>Nakit</span><b>${eur(sum(live, "nakit") + pend.filter(o => o.pay === "nakit").reduce((a, o) => a + o.total, 0))}</b></div>
+    <div class="stat"><span>Kart</span><b>${eur(sum(live, "kart") + pend.filter(o => o.pay === "kart").reduce((a, o) => a + o.total, 0))}</b></div>
+    <div class="stat" style="grid-column:1/-1"><span>Sipariş sayısı</span><b>${live.length + pend.length}</b></div>`;
+  const hm = d => new Date(d).toLocaleTimeString("tr-TR", {hour:"2-digit", minute:"2-digit", timeZone:"Europe/Brussels"});
+  const rows = [
+    ...pend.map(o => `<div class="ord pending"><div class="top"><span class="tm">${hm(o.at)}</span><span class="chip ${o.pay}">${o.pay}</span><span class="ot">${eur(o.total)}</span></div>
+      <div class="its">${esc(itemsText(o.items))}</div><div class="act" style="color:var(--gold-deep)">Gönderilmeyi bekliyor</div></div>`),
+    ...TODAY.map(o => `<div class="ord${o.voided ? " void" : ""}"><div class="top"><span class="tm">${hm(o.created_at)}</span><span class="chip ${o.pay}">${o.pay}</span><span class="ot">${eur(Number(o.total))}</span></div>
+      <div class="its">${esc(itemsText(o.items))}</div>
+      <button class="act" data-void="${o.id}" data-v="${o.voided ? 0 : 1}">${o.voided ? "İptal edildi · geri getir" : "İptal et"}</button></div>`)
+  ];
+  $("orders").innerHTML = rows.length ? rows.join("") : `<div class="empty">Bugün henüz sipariş yok.</div>`;
+}
+$("orders").addEventListener("click", async e => {
+  const b = e.target.closest("[data-void]"); if(!b) return;
+  if(b.dataset.v === "1" && !b.classList.contains("arm")){
+    b.classList.add("arm"); const old = b.textContent; b.textContent = "Emin misin? Tekrar dokun";
+    setTimeout(() => { if(b.isConnected){ b.classList.remove("arm"); b.textContent = old; } }, 3500); return;
+  }
+  try{ await rpc("order_void", {p_pin: PIN, p_id: +b.dataset.void, p_void: b.dataset.v === "1"}); await loadToday(); }
+  catch(err){ if(!pinLost(err)) toast("Olmadı — tekrar deneyin", {err:true}); }
+});
+
+/* ================= TÜKENDİ ================= */
+async function loadSold(){
+  let r = await fetch(`${BASE}/rest/v1/sold_out?select=id,sold,hidden`, {headers:H, cache:"no-store"});
+  if(r.status === 400) r = await fetch(`${BASE}/rest/v1/sold_out?select=id,sold`, {headers:H, cache:"no-store"});
+  if(!r.ok) throw new Error("HTTP " + r.status);
+  SOLD = {}; HIDDEN = {};
+  (await r.json()).forEach(x => { if(x.sold) SOLD[x.id] = true; if(x.hidden) HIDDEN[x.id] = true; });
+  $("sync").textContent = "güncel · " + new Date().toLocaleTimeString("tr-TR", {hour:"2-digit", minute:"2-digit"});
+}
+const stText = id => HIDDEN[id] ? "Menüde gizli" : SOLD[id] ? "TÜKENDİ" : "Var";
+function drawSold(){
+  $("jump").innerHTML = CATS.map(c => `<button data-go="sec-${esc(c.id)}">${esc(c.title)}</button>`).join("");
+  $("list").innerHTML = CATS.map(c => `
+    <h2 id="sec-${esc(c.id)}">${esc(c.title)}</h2>
+    <div class="list">${c.items.map(it => `
+      <div class="item${SOLD[it.id] ? " sold" : ""}${HIDDEN[it.id] ? " hid" : ""}" data-id="${esc(it.id)}">
+        <button class="tog" role="switch" aria-checked="${SOLD[it.id] ? "true" : "false"}">
+          <span class="nm">${esc(it.name)}<span class="st">${stText(it.id)}</span></span>
+          <span class="sw" aria-hidden="true"></span>
+        </button>
+        <button class="hide">${HIDDEN[it.id] ? "Göster" : "Gizle"}</button>
+      </div>`).join("")}
+    </div>`).join("");
+  counts();
+}
+$("jump").addEventListener("click", e => {
+  const b = e.target.closest("[data-go]"); if(!b) return;
+  const el = document.getElementById(b.dataset.go);
+  window.scrollTo({top: el.getBoundingClientRect().top + window.scrollY - 120, behavior: "smooth"});
+});
+function counts(){
+  const ids = new Set(CATS.flatMap(c => c.items.map(i => i.id)));
+  const n = Object.keys(SOLD).filter(id => ids.has(id)).length;
+  $("pill").textContent = n; $("pill").classList.toggle("zero", n === 0);
+  const h = Object.keys(HIDDEN).filter(id => ids.has(id)).length;
+  $("countTxt").textContent = (n === 0 ? "her şey var" : "ürün tükendi") + (h ? ` · ${h} gizli` : "");
+  $("soldN").textContent = n || "";
+  $("reset").disabled = n === 0;
+}
+function paintItem(el){
+  const id = el.dataset.id;
+  el.classList.toggle("sold", !!SOLD[id]); el.classList.toggle("hid", !!HIDDEN[id]);
+  el.querySelector(".tog").setAttribute("aria-checked", SOLD[id] ? "true" : "false");
+  el.querySelector(".st").textContent = stText(id);
+  el.querySelector(".hide").textContent = HIDDEN[id] ? "Göster" : "Gizle";
+}
+$("list").addEventListener("click", async e => {
+  const el = e.target.closest(".item"); if(!el) return;
+  const id = el.dataset.id, name = el.querySelector(".nm").firstChild.textContent;
+  if(e.target.closest(".hide")){
+    const next = !HIDDEN[id];
+    next ? HIDDEN[id] = true : delete HIDDEN[id];
+    paintItem(el); counts(); drawProds(); el.classList.add("busy");
+    try{ await rpc("panel_hide", {p_pin:PIN, p_id:id, p_hidden:next}); toast(next ? `${name}: menüden kaldırıldı` : `${name}: menüde tekrar görünüyor`); }
+    catch(err){
+      next ? delete HIDDEN[id] : HIDDEN[id] = true; paintItem(el); counts(); drawProds();
+      if(!pinLost(err)) toast("Kaydedilemedi — internet bağlantısını kontrol edin", {err:true});
+    }finally{ el.classList.remove("busy"); }
+    return;
+  }
+  if(!e.target.closest(".tog")) return;
+  const next = !SOLD[id];
+  next ? SOLD[id] = true : delete SOLD[id];
+  paintItem(el); counts(); drawProds(); el.classList.add("busy");
+  try{ await rpc("panel_set", {p_pin:PIN, p_id:id, p_sold:next}); toast(next ? `${name}: tükendi` : `${name}: tekrar var`); }
+  catch(err){
+    next ? delete SOLD[id] : SOLD[id] = true; paintItem(el); counts(); drawProds();
+    if(!pinLost(err)) toast("Kaydedilemedi — internet bağlantısını kontrol edin", {err:true});
+  }finally{ el.classList.remove("busy"); }
+});
+let resetArm;
+$("reset").addEventListener("click", async () => {
+  const b = $("reset");
+  if(!b.classList.contains("confirm")){
+    b.classList.add("confirm"); b.textContent = "Emin misin? Tekrar dokun";
+    clearTimeout(resetArm); resetArm = setTimeout(() => { b.classList.remove("confirm"); b.textContent = "Hepsini tekrar “var” yap"; }, 3500); return;
+  }
+  clearTimeout(resetArm); b.classList.remove("confirm"); b.textContent = "Hepsini tekrar “var” yap"; b.disabled = true;
+  try{ await rpc("panel_reset", {p_pin:PIN}); SOLD = {}; drawSold(); drawProds(); toast("Tüm ürünler tekrar var"); }
+  catch(err){ if(!pinLost(err)) toast("Olmadı — tekrar deneyin", {err:true}); counts(); }
+});
+async function refreshSold(quiet){
+  try{ await loadSold(); drawSold(); drawProds(); }catch(e){ if(!quiet) toast("Bağlanılamadı", {err:true}); }
+}
+document.addEventListener("visibilitychange", () => {
+  if(document.hidden || $("panel").hidden) return;
+  refreshSold(true); flushQueue(); if(TAB === "today") loadToday();
+});
+setInterval(() => { if(!document.hidden && !$("panel").hidden) refreshSold(true); }, 30000);
+if(READY && window.SUPA.live) window.SUPA.live(() => { if(!$("panel").hidden) refreshSold(true); });
+
+/* ================= GİRİŞ ================= */
+let typed = "";
+function dots(){ [...$("dots").children].forEach((d, i) => d.classList.toggle("on", i < typed.length)); }
+$("pad").addEventListener("click", e => {
+  const b = e.target.closest("button"); if(!b) return;
+  const k = b.dataset.k;
+  if(k === "clr") typed = ""; else if(k === "back") typed = typed.slice(0, -1); else if(typed.length < 4) typed += b.textContent;
+  $("lockMsg").textContent = ""; dots();
+  if(typed.length === 4) tryLogin(typed);
+});
+async function tryLogin(pin){
+  if(!READY){ $("lockMsg").textContent = "Supabase ayarı eksik"; return; }
+  $("lockMsg").textContent = "Kontrol ediliyor…";
+  try{
+    if(await rpc("panel_check", {p_pin:pin})){ PIN = pin; store.set("cz_pin", pin); enter(); }
+    else fail("PIN yanlış");
+  }catch(e){ fail("Bağlanılamadı"); }
+}
+function fail(msg){
+  $("lockMsg").textContent = msg; typed = ""; dots();
+  $("dots").classList.remove("shake"); void $("dots").offsetWidth; $("dots").classList.add("shake");
+}
+async function enter(){
+  $("lock").hidden = true; $("panel").hidden = false;
+  drawProds(); drawCart(); drawSold(); drawQueue();
+  showTab(store.get("cz_tab", "order"));
+  try{ await loadSold(); drawSold(); drawProds(); }catch(e){ toast("Tükendi durumu okunamadı", {err:true}); }
+  flushQueue();
+}
+function logout(msg){
+  PIN = ""; typed = ""; store.set("cz_pin", null); dots();
+  $("panel").hidden = true; $("lock").hidden = false; $("lockMsg").textContent = msg || "";
+}
+$("logout").addEventListener("click", () => logout());
+
+(async () => {
+  if(!READY) $("cfgWarn").hidden = false;
+  await loadMenu();
+  // eski sürümden kalan PIN (düz metin) de okunsun
+  let saved = store.get("cz_pin", ""); if(!saved){ try{ saved = localStorage.getItem("cz_pin") || ""; }catch(e){} }
+  if(saved && READY){
+    try{ if(await rpc("panel_check", {p_pin:String(saved)})){ PIN = String(saved); store.set("cz_pin", PIN); enter(); return; } }catch(e){}
+    store.set("cz_pin", null);
+  }
+})();
+</script>
+</body>
+</html>
