@@ -17,9 +17,12 @@ window.SUPA.live = function(onChange){
     try{
       var sb = window.supabase.createClient(C.URL, C.ANON_KEY,
         {auth:{persistSession:false, autoRefreshToken:false, detectSessionInUrl:false}});
-      sb.channel("sold_out_live")
-        .on("postgres_changes", {event:"*", schema:"public", table:"sold_out"}, ping)
-        .subscribe(function(status){ if(status === "SUBSCRIBED") ping(); });   // (yeniden) bağlanınca durumu tazele
+      // her tablo ayrı kanalda: biri hata verirse diğeri çalışmaya devam eder
+      ["sold_out", "menu_price"].forEach(function(tbl){
+        sb.channel(tbl + "_live")
+          .on("postgres_changes", {event:"*", schema:"public", table:tbl}, ping)
+          .subscribe(function(status){ if(status === "SUBSCRIBED") ping(); });   // (yeniden) bağlanınca durumu tazele
+      });
     }catch(e){}
   }
   if(window.supabase && window.supabase.createClient) return start();

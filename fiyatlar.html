@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#3E2723">
+<title>Fiyatlar — Çavuşzade Antwerpen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="supabase-config.js"></script>
+<style>
+  :root{
+    --cream:#FFF8E7; --bej:#F5E6D3; --gold:#D4AF37; --gold-deep:#B8941F;
+    --brown:#3E2723; --brown-mid:#6D4C41; --line:rgba(62,39,35,.14);
+    --red:#B3261E; --red-bg:#FBE9E7; --green:#2E7D32; --chg:#FFF3C4;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html{-webkit-text-size-adjust:100%}
+  body{font-family:'Figtree',system-ui,-apple-system,sans-serif;background:var(--cream);color:var(--brown);-webkit-font-smoothing:antialiased;min-height:100vh}
+  button,input{font:inherit;color:inherit}
+  button{border:none;background:none;cursor:pointer}
+  [hidden]{display:none!important}
+
+  /* PIN */
+  #lock{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+        padding:calc(24px + env(safe-area-inset-top,0px)) 24px calc(24px + env(safe-area-inset-bottom,0px));text-align:center}
+  #lock h1{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:700;line-height:1}
+  #lock .sub{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-deep);margin-top:8px;font-weight:600}
+  .dots{display:flex;gap:16px;margin:34px 0 10px}
+  .dots i{width:16px;height:16px;border-radius:50%;border:2px solid var(--brown-mid)}
+  .dots i.on{background:var(--brown);border-color:var(--brown)}
+  .dots.shake{animation:shake .4s}
+  @keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+  #lockMsg{min-height:20px;font-size:14px;color:var(--red);font-weight:600}
+  .pad{display:grid;grid-template-columns:repeat(3,76px);gap:14px;margin-top:14px}
+  .pad button{height:76px;border-radius:50%;background:#fff;border:1px solid var(--line);font-size:28px;font-weight:600}
+  .pad button:active{background:var(--bej)}
+  .pad .ghost{background:none;border:none;font-size:15px;color:var(--brown-mid)}
+
+  /* üst */
+  header{position:sticky;top:0;z-index:20;background:var(--brown);color:var(--cream);padding:calc(12px + env(safe-area-inset-top,0px)) 16px 12px}
+  .hrow{max-width:640px;margin:0 auto;display:flex;align-items:center;gap:10px}
+  .hrow b{flex:1;font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700}
+  .hbtn{padding:7px 12px;border-radius:999px;border:1px solid rgba(255,248,231,.35);font-size:13px;font-weight:600;color:var(--cream)}
+  .jump{max-width:640px;margin:10px auto 0;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+  .jump::-webkit-scrollbar{display:none}
+  .jump button{flex-shrink:0;white-space:nowrap;padding:7px 12px;border-radius:999px;background:rgba(255,248,231,.12);color:var(--cream);font-size:13px;font-weight:600}
+
+  main{max-width:640px;margin:0 auto;padding:6px 14px calc(120px + env(safe-area-inset-bottom,0px))}
+  .intro{font-size:13.5px;color:var(--brown-mid);line-height:1.5;margin:14px 2px 0}
+  h2{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;margin:22px 2px 8px;display:flex;align-items:center;gap:10px;scroll-margin-top:120px}
+  h2::after{content:"";flex:1;height:1px;background:var(--line)}
+  .list{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+  .it{padding:12px 14px;border-bottom:1px solid var(--line)}
+  .it:last-child{border-bottom:none}
+  .it.chg{background:var(--chg)}
+  .top{display:flex;align-items:center;gap:10px}
+  .nm{flex:1;min-width:0;font-weight:600;font-size:16px;line-height:1.25}
+  .row{display:flex;align-items:center;gap:8px;margin-top:8px}
+  .row label{flex:1;font-size:14px;color:var(--brown-mid)}
+  .money{display:flex;align-items:center;background:var(--cream);border:1.5px solid var(--line);border-radius:12px;padding:0 10px;width:122px}
+  .money:focus-within{border-color:var(--gold-deep)}
+  .money input{width:100%;border:none;background:none;padding:10px 0;font-size:18px;font-weight:700;text-align:right;outline:none;-moz-appearance:textfield}
+  .money input::-webkit-outer-spin-button,.money input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .money span{font-weight:700;margin-left:4px;white-space:nowrap;color:var(--brown-mid)}
+  .single .money{width:140px}
+  .meta{display:flex;align-items:center;gap:10px;margin-top:6px;font-size:12.5px;color:var(--brown-mid)}
+  .meta .reset{margin-left:auto;font-weight:700;color:var(--red);font-size:12.5px;padding:4px 0;white-space:nowrap}
+  .tag{font-size:11px;font-weight:700;color:var(--gold-deep);border:1px solid var(--gold);border-radius:999px;padding:1px 8px}
+
+  .bar{position:fixed;left:0;right:0;bottom:0;z-index:15;background:#fff;border-top:1px solid var(--line);box-shadow:0 -6px 24px rgba(62,39,35,.12);
+       padding:12px 14px calc(12px + env(safe-area-inset-bottom,0px))}
+  .bar-in{max-width:640px;margin:0 auto;display:flex;gap:10px}
+  .save{flex:1;padding:16px;border-radius:14px;background:var(--green);color:#fff;font-weight:700;font-size:16px}
+  .save:disabled{background:var(--bej);color:var(--brown-mid)}
+  .undo{padding:16px 14px;border-radius:14px;border:1.5px solid var(--line);font-weight:700;font-size:14px}
+
+  #toast{position:fixed;left:50%;top:calc(120px + env(safe-area-inset-top,0px));transform:translateX(-50%) translateY(-10px);z-index:50;
+         background:var(--brown);color:var(--cream);padding:11px 18px;border-radius:999px;font-size:14px;font-weight:600;
+         opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;max-width:calc(100% - 24px);text-align:center}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  #toast.err{background:var(--red)}
+</style>
+</head>
+<body>
+
+<section id="lock">
+  <h1>Çavuşzade</h1>
+  <div class="sub">Fiyat düzenleme</div>
+  <div class="dots" id="dots"><i></i><i></i><i></i><i></i></div>
+  <div id="lockMsg" role="status"></div>
+  <div class="pad" id="pad">
+    <button>1</button><button>2</button><button>3</button>
+    <button>4</button><button>5</button><button>6</button>
+    <button>7</button><button>8</button><button>9</button>
+    <button class="ghost" data-k="clr">Sil</button><button>0</button><button class="ghost" data-k="back">⌫</button>
+  </div>
+</section>
+
+<div id="app" hidden>
+  <header>
+    <div class="hrow"><b>Fiyatlar</b><a class="hbtn" href="panel.html" style="text-decoration:none">Panel</a><button class="hbtn" id="logout">Çıkış</button></div>
+    <nav class="jump" id="jump"></nav>
+  </header>
+  <main>
+    <p class="intro">Fiyatı değiştir, alttaki <b>Kaydet</b>'e bas. Menü ve personel paneli birkaç saniye içinde yeni fiyatı gösterir. Sarı satırlar kaydedilmemiş değişikliklerdir.</p>
+    <div id="list"></div>
+  </main>
+  <div class="bar"><div class="bar-in">
+    <button class="undo" id="undo" hidden>Vazgeç</button>
+    <button class="save" id="save" disabled>Değişiklik yok</button>
+  </div></div>
+</div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const C = window.SUPA || {};
+const BASE = (C.URL || "").replace(/\/$/, "");
+const H = {apikey:C.ANON_KEY, Authorization:"Bearer "+C.ANON_KEY, "Content-Type":"application/json"};
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const eur = n => (Math.round(n*100)/100).toLocaleString("fr-BE",{minimumFractionDigits:Number.isInteger(n)?0:2,maximumFractionDigits:2}) + " €";
+const store = {
+  get(){ try{ return localStorage.getItem("cz_price_pin") || ""; }catch(e){ return ""; } },
+  set(v){ try{ v ? localStorage.setItem("cz_price_pin", v) : localStorage.removeItem("cz_price_pin"); }catch(e){} }
+};
+let PIN = "", CATS = [], OV = {};
+
+let toastT;
+function toast(m, err){ const t = $("toast"); t.textContent = m; t.classList.toggle("err", !!err); t.classList.add("show");
+  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("show"), err ? 3500 : 2200); }
+async function rpc(fn, body){
+  const r = await fetch(`${BASE}/rest/v1/rpc/${fn}`, {method:"POST", headers:H, body:JSON.stringify(body)});
+  if(!r.ok){ let m = ""; try{ m = (await r.json()).message || ""; }catch(e){} throw new Error(m.includes("PIN") ? "PIN" : (m || "HTTP " + r.status)); }
+  const t = await r.text(); return t ? JSON.parse(t) : null;
+}
+
+/* menünün orijinal fiyatları index.html'den */
+async function loadMenu(){
+  const html = await (await fetch("index.html", {cache:"no-store"})).text();
+  const m = html.match(/const MENU = (\[[\s\S]*?\n\]);\s*<\/script>/);
+  const MENU = new Function("return " + m[1])();
+  const nm = n => typeof n === "string" ? n : (n.tr || n.nl || n.en);
+  CATS = MENU.map(c => ({id:c.id, title:nm(c.title), items:c.items.map(i => ({
+    id:i.id, name:nm(i.name), unit:i.unit || null,
+    defPrice: i.prices ? null : (i.price ?? null),
+    defPrices: i.prices ? Object.fromEntries(Object.entries(i.prices).map(([k,v]) => [k, Number(v)])) : null
+  }))}));
+}
+async function loadOverrides(){
+  const r = await fetch(`${BASE}/rest/v1/menu_price?select=id,price,prices`, {headers:H, cache:"no-store"});
+  OV = {}; if(r.ok) (await r.json()).forEach(x => OV[x.id] = x);
+}
+const cur = it => {   // şu an menüde geçerli olan
+  const o = OV[it.id];
+  if(it.defPrices) return {prices: o && o.prices ? Object.fromEntries(Object.entries(o.prices).map(([k,v]) => [k, Number(v)])) : it.defPrices};
+  return {price: o && o.price != null ? Number(o.price) : it.defPrice};
+};
+const fmtIn = n => n == null ? "" : String(Math.round(n*100)/100).replace(".", ",");
+const parse = v => { const n = parseFloat(String(v).replace(",", ".").replace(/[^\d.]/g, "")); return isFinite(n) ? Math.round(n*100)/100 : NaN; };
+
+function draw(){
+  $("jump").innerHTML = CATS.map(c => `<button data-go="s-${esc(c.id)}">${esc(c.title)}</button>`).join("");
+  $("list").innerHTML = CATS.map(c => `
+    <h2 id="s-${esc(c.id)}">${esc(c.title)}</h2>
+    <div class="list">${c.items.map(it => {
+      const v = cur(it), changedFromMenu = !!OV[it.id];
+      const fields = it.defPrices
+        ? Object.keys(v.prices).sort((a,b) => a-b).map(k => `
+            <div class="row"><label>${k} kişilik</label>
+              <div class="money"><input inputmode="decimal" data-id="${esc(it.id)}" data-k="${k}" value="${fmtIn(v.prices[k])}" data-orig="${fmtIn(v.prices[k])}"><span>€</span></div></div>`).join("")
+        : `<div class="money"><input inputmode="decimal" data-id="${esc(it.id)}" value="${fmtIn(v.price)}" data-orig="${fmtIn(v.price)}"><span>€${it.unit ? " / " + esc(it.unit) : ""}</span></div>`;
+      const orig = it.defPrices ? Object.entries(it.defPrices).map(([k,p]) => `${k}: ${eur(p)}`).join(" · ") : (it.defPrice != null ? eur(it.defPrice) : "—");
+      return `<div class="it${it.defPrices ? "" : " single"}" data-item="${esc(it.id)}">
+        <div class="top"><span class="nm">${esc(it.name)}</span>${it.defPrices ? "" : fields}</div>
+        ${it.defPrices ? fields : ""}
+        ${changedFromMenu ? `<div class="meta"><span class="tag">değiştirildi</span><span>ilk fiyat: ${orig}</span><button class="reset" data-reset="${esc(it.id)}">İlk fiyata dön</button></div>` : ""}
+      </div>`; }).join("")}
+    </div>`).join("");
+  refreshBar();
+}
+function dirtyItems(){
+  const ids = new Set();
+  document.querySelectorAll(".money input").forEach(i => { if(parse(i.value) !== parse(i.dataset.orig)) ids.add(i.dataset.id); });
+  document.querySelectorAll(".it").forEach(el => el.classList.toggle("chg", ids.has(el.dataset.item)));
+  return [...ids];
+}
+function refreshBar(){
+  const n = dirtyItems().length;
+  $("save").disabled = !n; $("save").textContent = n ? `${n} ürünü kaydet` : "Değişiklik yok";
+  $("undo").hidden = !n;
+}
+$("list").addEventListener("input", refreshBar);
+$("list").addEventListener("focusin", e => { if(e.target.matches(".money input")) setTimeout(() => e.target.select(), 0); });
+$("jump").addEventListener("click", e => {
+  const b = e.target.closest("[data-go]"); if(!b) return;
+  document.getElementById(b.dataset.go).scrollIntoView({behavior:"smooth", block:"start"});
+});
+$("undo").addEventListener("click", () => { draw(); toast("Değişiklikler geri alındı"); });
+
+$("save").addEventListener("click", async () => {
+  const ids = dirtyItems(); if(!ids.length) return;
+  // önce kontrol
+  for(const id of ids){
+    for(const i of document.querySelectorAll(`.money input[data-id="${CSS.escape(id)}"]`)){
+      const n = parse(i.value);
+      if(!(n > 0 && n < 1000)){ i.focus(); toast("Geçersiz fiyat: " + (i.value || "boş"), true); return; }
+    }
+  }
+  $("save").disabled = true; $("save").textContent = "Kaydediliyor…";
+  let ok = 0;
+  try{
+    for(const id of ids){
+      const it = CATS.flatMap(c => c.items).find(x => x.id === id);
+      const ins = [...document.querySelectorAll(`.money input[data-id="${CSS.escape(id)}"]`)];
+      if(it.defPrices){
+        const prices = {}; ins.forEach(i => prices[i.dataset.k] = parse(i.value));
+        const same = Object.keys(it.defPrices).every(k => it.defPrices[k] === prices[k]);
+        same ? await rpc("price_reset", {p_pin:PIN, p_id:id}) : await rpc("price_set", {p_pin:PIN, p_id:id, p_price:null, p_prices:prices});
+      }else{
+        const p = parse(ins[0].value);
+        p === it.defPrice ? await rpc("price_reset", {p_pin:PIN, p_id:id}) : await rpc("price_set", {p_pin:PIN, p_id:id, p_price:p, p_prices:null});
+      }
+      ok++;
+    }
+    toast(`${ok} ürünün fiyatı kaydedildi`);
+  }catch(err){
+    if(err.message === "PIN"){ logout("PIN yanlış ya da değişmiş"); return; }
+    toast(ok ? `${ok} kaydedildi, kalanlar kaydedilemedi — tekrar deneyin` : "Kaydedilemedi — internet bağlantısını kontrol edin", true);
+  }
+  await loadOverrides(); draw();
+});
+$("list").addEventListener("click", async e => {
+  const b = e.target.closest("[data-reset]"); if(!b) return;
+  if(!b.classList.contains("arm")){ b.classList.add("arm"); b.textContent = "Emin misin?"; setTimeout(() => { if(b.isConnected){ b.classList.remove("arm"); b.textContent = "İlk fiyata dön"; } }, 3000); return; }
+  try{ await rpc("price_reset", {p_pin:PIN, p_id:b.dataset.reset}); toast("İlk fiyata dönüldü"); }
+  catch(err){ if(err.message === "PIN") return logout("PIN yanlış ya da değişmiş"); toast("Olmadı — tekrar deneyin", true); }
+  await loadOverrides(); draw();
+});
+window.addEventListener("beforeunload", e => { if(!$("app").hidden && dirtyItems().length){ e.preventDefault(); e.returnValue = ""; } });
+
+/* giriş */
+let typed = "";
+const dots = () => [...$("dots").children].forEach((d, i) => d.classList.toggle("on", i < typed.length));
+$("pad").addEventListener("click", e => {
+  const b = e.target.closest("button"); if(!b) return;
+  const k = b.dataset.k;
+  if(k === "clr") typed = ""; else if(k === "back") typed = typed.slice(0, -1); else if(typed.length < 4) typed += b.textContent;
+  $("lockMsg").textContent = ""; dots();
+  if(typed.length === 4) login(typed);
+});
+async function login(pin){
+  $("lockMsg").textContent = "Kontrol ediliyor…";
+  try{
+    if(await rpc("price_check", {p_pin:pin})){ PIN = pin; store.set(pin); return enter(); }
+    fail("PIN yanlış");
+  }catch(e){ fail("Bağlanılamadı"); }
+}
+function fail(m){ $("lockMsg").textContent = m; typed = ""; dots(); $("dots").classList.remove("shake"); void $("dots").offsetWidth; $("dots").classList.add("shake"); }
+async function enter(){
+  $("lock").hidden = true; $("app").hidden = false;
+  try{ await loadMenu(); await loadOverrides(); draw(); }
+  catch(e){ toast("Menü okunamadı — sayfayı yenileyin", true); }
+}
+function logout(m){ PIN = ""; typed = ""; store.set(""); dots(); $("app").hidden = true; $("lock").hidden = false; $("lockMsg").textContent = m || ""; }
+$("logout").addEventListener("click", () => logout());
+
+(async () => {
+  const saved = store.get();
+  if(saved){ try{ if(await rpc("price_check", {p_pin:saved})){ PIN = saved; return enter(); } }catch(e){} store.set(""); }
+})();
+</script>
+</body>
+</html>

@@ -300,6 +300,21 @@ async function loadMenu(){
     if(cats.length && cats.every(c => c.items.length)) CATS = cats;
   }catch(e){}
 }
+/* fiyat sayfasından değiştirilen fiyatlar */
+async function loadPrices(){
+  try{
+    const r = await fetch(`${BASE}/rest/v1/menu_price?select=id,price,prices`, {headers:H, cache:"no-store"});
+    if(!r.ok) return;
+    const ov = {}; (await r.json()).forEach(x => ov[x.id] = x);
+    CATS.forEach(c => c.items.forEach(it => {
+      if(!("_dp" in it)){ it._dp = it.price ?? null; it._dps = it.prices ? JSON.stringify(it.prices) : null; }
+      const o = ov[it.id];
+      it.price = o && o.price != null ? Number(o.price) : it._dp;
+      const nps = o && o.prices ? JSON.stringify(o.prices) : it._dps;
+      if(nps) it.prices = JSON.parse(nps); else delete it.prices;
+    }));
+  }catch(e){}
+}
 const findItem = id => { for(const c of CATS) for(const i of c.items) if(i.id === id) return i; return null; };
 
 /* ================= SEKMELER ================= */
@@ -544,6 +559,7 @@ async function loadSold(){
   if(!r.ok) throw new Error("HTTP " + r.status);
   SOLD = {}; HIDDEN = {};
   (await r.json()).forEach(x => { if(x.sold) SOLD[x.id] = true; if(x.hidden) HIDDEN[x.id] = true; });
+  await loadPrices();
   $("sync").textContent = "güncel · " + new Date().toLocaleTimeString("tr-TR", {hour:"2-digit", minute:"2-digit"});
 }
 const stText = id => HIDDEN[id] ? "Menüde gizli" : SOLD[id] ? "TÜKENDİ" : "Var";
