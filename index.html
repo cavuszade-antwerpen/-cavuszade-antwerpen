@@ -561,16 +561,22 @@ document.querySelectorAll('.flag').forEach(b=> b.addEventListener('click', ()=>{
   warmImages();
   setLang(b.dataset.pick);
   const splash = document.getElementById('splash'), app = document.getElementById('app');
-  setTimeout(()=>{
+  const ready = window.FIRST_SYNC ? Promise.race([window.FIRST_SYNC, new Promise(r=> setTimeout(r, 2500))]) : Promise.resolve();
+  ready.then(()=> setTimeout(()=>{
     splash.classList.add('out');
     app.classList.add('in'); app.removeAttribute('aria-hidden');
     document.body.classList.remove('locked');
     window.scrollTo(0,0);
     setTimeout(()=> splash.remove(), 800);
-  }, 180);
+  }, 180));
 }));
 
 /* telefon diline göre bayrağı öne çıkar (ekran yine gösterilir) */
+/* bu telefonda en son görülen gizli / tükendi durumu: ilk açılışta hemen uygulanır */
+try{
+  const st = JSON.parse(localStorage.getItem("cz_state") || "null");
+  if(st) MENU.forEach(c=> c.items.forEach(it=>{ it.hidden = !!(st.hid||{})[it.id]; it.soldOut = !!(st.sold||{})[it.id]; }));
+}catch(e){}
 const nav = (navigator.language||"nl").slice(0,2).toLowerCase();
 setLang(["tr","fr","nl","en"].includes(nav) ? nav : "nl");
 
@@ -584,9 +590,11 @@ async function syncSold(){
     const opt = {headers:{apikey:C.ANON_KEY, Authorization:"Bearer "+C.ANON_KEY}, cache:"no-store", signal:ctl.signal};
     let r = await fetch(base + "id,sold,hidden", opt);
     if(r.status === 400) r = await fetch(base + "id,sold", opt);   // "gizle" sütunu henüz yoksa
-    if(!r.ok) return;
+    if(!r.ok) throw new Error("HTTP " + r.status);
     const map = {}, hid = {};
     (await r.json()).forEach(x=>{ map[x.id] = x.sold === true; hid[x.id] = x.hidden === true; });
+    try{ localStorage.setItem("cz_state", JSON.stringify({sold:map, hid, at:Date.now()})); }catch(e){}
+    SYNC_FAILS = 0;
     let changed = false;
     MENU.forEach(c=> c.items.forEach(it=>{
       const v = map[it.id] === true, h = hid[it.id] === true;
@@ -609,13 +617,19 @@ async function syncSold(){
       }
     }catch(e){}
     if(changed){ const y = window.scrollY; render(); window.scrollTo(0,y); }
-  }catch(e){ /* bağlantı yoksa menü normal görünür */ }
+    return true;
+  }catch(e){ /* bağlantı yoksa: aşağıda tekrar denenir */ }
   finally{ clearTimeout(t); }
+  // başarısız: 3 sn, 6 sn, 12 sn... sonra tekrar dene (en fazla 6 kez)
+  if(SYNC_FAILS < 6){ const wait = 3000 * Math.pow(2, SYNC_FAILS++); clearTimeout(RETRY_T); RETRY_T = setTimeout(syncSold, wait); }
+  return false;
 }
-syncSold();
+let SYNC_FAILS = 0, RETRY_T;
+window.FIRST_SYNC = syncSold();
 if(window.SUPA && window.SUPA.live) window.SUPA.live(syncSold);   // anında güncelleme
 setInterval(()=>{ if(!document.hidden) syncSold(); }, 60000);    // yedek
 document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) syncSold(); });
+window.addEventListener('pageshow', e=>{ if(e.persisted) syncSold(); });   // tarayıcı eski sayfayı hafızadan açarsa
 </script>
 </body>
 </html>
